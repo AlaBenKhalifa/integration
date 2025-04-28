@@ -1,0 +1,1100 @@
+/* Modern Profile Card Redesign */
+.modern-bg {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f4f8fc 60%, #e3e9f7 100%);
+}
+
+.modern-profile-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(44, 62, 80, 0.15);
+  padding: 36px 36px 28px 36px;
+  max-width: 420px;
+  width: 100%;
+  margin: 30px 0;
+  position: relative;
+  overflow: visible;
+}
+
+.modern-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.modern-profile-image {
+  position: relative;
+  width: 86px;
+  height: 86px;
+  flex-shrink: 0;
+}
+
+.modern-profile-image img {
+  width: 86px;
+  height: 86px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+}
+
+.modern-status-dot {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #e74c3c;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(44, 62, 80, 0.08);
+}
+.modern-status-dot.active {
+  background: #23c16b;
+}
+
+.modern-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.modern-profile-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modern-user-name {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  color: #222;
+}
+
+.modern-role-tag {
+  background: #ff6200;
+  color: #fff;
+  font-size: 0.85rem;
+  border-radius: 12px;
+  padding: 2px 12px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.modern-user-email {
+  font-size: 0.98rem;
+  color: #555;
+  opacity: 0.9;
+  margin-bottom: 2px;
+}
+
+.modern-user-id {
+  font-size: 0.75rem;
+  color: #bbb;
+  margin-bottom: 2px;
+}
+
+.modern-profile-details {
+  margin-top: 18px;
+  text-align: left;
+}
+
+.modern-user-bio {
+  color: #444;
+  font-size: 1rem;
+  margin-bottom: 18px;
+}
+
+.modern-user-skills {
+  margin-bottom: 18px;
+}
+
+.modern-skill-tag {
+  display: inline-block;
+  background: #e3e9f7;
+  color: #2c3e50;
+  font-size: 0.92rem;
+  border-radius: 14px;
+  padding: 4px 14px;
+  margin: 0 7px 7px 0;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.modern-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: space-between;
+}
+
+.modern-edit-btn {
+  background: #4299e1;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(66, 153, 225, 0.3);
+  flex: 1;
+}
+
+.modern-edit-btn:hover {
+  background: #3182ce;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(66, 153, 225, 0.4);
+}
+
+.modern-analyze-btn {
+  background: #805ad5;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 10px rgba(128, 90, 213, 0.3);
+  flex: 1;
+}
+
+.modern-analyze-btn:hover {
+  background: #6b46c1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(128, 90, 213, 0.4);
+}
+
+.modern-edit-btn {
+  display: block;
+  width: 100%;
+  background: #ff6200;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 0;
+  font-size: 1.06rem;
+  font-weight: 600;
+  margin-top: 8px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.modern-edit-btn:hover {
+  background: #e55a00;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .modern-profile-card {
+    padding: 20px 6px 18px 6px;
+  }
+  .modern-profile-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .modern-profile-info {
+    align-items: flex-start;
+  }
+}
+
+/* Background with image and overlay */
+.profile-background {
+  min-height: 100vh;
+  background: url('/assets/img/banner-bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  padding-top: 150px; /* Increased to clear header */
+}
+
+.profile-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(44, 62, 80, 0.4); /* Lighter overlay */
+  z-index: 0;
+  pointer-events: none; /* Prevent overlay from capturing mouse events */
+}
+
+/* Blurred circle decorations */
+.profile-background::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 140, 0, 0.3);
+  filter: blur(50px);
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  right: -100px;
+}
+
+/* Two-column Layout Structure */
+.profile-layout-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 40px; /* Increased gap between profile and features */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  position: relative;
+  z-index: 1; /* Above the background overlay */
+}
+
+/* Profile Column (Left) */
+.profile-column {
+  flex: 0 0 350px;
+  max-width: 350px;
+}
+
+/* Feature Column (Right) */
+.feature-column {
+  flex: 1;
+  min-width: 0; /* Prevent flex items from overflowing */
+  max-width: 700px;
+  transition: max-width 0.3s ease-in-out;
+}
+
+/* Modern Profile Card */
+.modern-profile-card {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  transition: all 0.3s ease;
+  height: fit-content;
+}
+
+/* Profile card */
+.profile-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 600px;
+  padding: 30px;
+  position: relative;
+  text-align: center;
+  z-index: 1; /* Ensure card is above overlay */
+}
+
+/* Rest of the existing styles remain unchanged */
+
+/* Profile header (image and buttons) */
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.profile-image {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.profile-image img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn {
+  background: #f5f5f5;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.action-btn:hover {
+  background: #e0e0e0;
+}
+
+.disconnect-btn {
+  margin-right: auto;
+}
+
+.message-btn {
+  margin-left: auto;
+}
+
+.icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.disconnect-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="%23666" d="M12 2a10 10 0 00-8.54 15.14l-1.41 1.41A1 1 0 003 20h18a1 1 0 00.95-1.32l-1.41-1.41A10 10 0 0012 2zm0 16a1 1 0 01-1-1v-2a1 1 0 011-1h.01a1 1 0 011 1v2a1 1 0 01-1 1zm3.54-4.54l-1.41-1.41A3 3 0 0112 11h-.01a3 3 0 01-2.12 5.13l-1.41-1.41A5 5 0 0012 9h.01a5 5 0 003.54 8.54z"/></svg>');
+}
+
+.message-icon {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="%23666" d="M20 2H4a2 2 0 00-2 2v18l4-4h14a2 2 0 002-2V4a2 2 0 00-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>');
+}
+
+/* Profile details */
+.user-name {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 60px 0 5px;
+}
+
+.user-location,
+.user-title,
+.user-education,
+.user-role {
+  font-size: 14px;
+  color: #666;
+  margin: 5px 0;
+}
+
+.profile-details p {
+  color: #444;
+  font-size: 14px;
+  margin: 5px 0;
+}
+
+.profile-details strong {
+  color: #333;
+}
+
+.show-more-btn {
+  background: #ff6200;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.show-more-btn:hover {
+  background: #e55a00;
+}
+
+/* Edit Form */
+.profile-form {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.form-control {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-control:disabled {
+  background: #f5f5f5;
+}
+
+.text-danger {
+  color: #e74c3c;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background: #ff6200;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #e55a00;
+}
+
+.save-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.cancel-btn {
+  background: #666;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #555;
+}
+
+/* Alerts and Loading */
+.alert {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.alert-danger {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+}
+
+.loading {
+  text-align: center;
+  font-size: 16px;
+  color: #666;
+  margin: 20px 0;
+}
+
+/* Status dot, skill tags, and role tags */
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: red;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.status-dot.active {
+  background-color: green;
+}
+
+.skill-tag {
+  display: inline-block;
+  background-color: #e0e0e0;
+  border-radius: 15px;
+  padding: 5px 10px;
+  margin: 5px 5px 0 0;
+  font-size: 12px;
+}
+
+.role-tag {
+  display: inline-block;
+  background-color: #ff6200;
+  color: white;
+  border-radius: 15px;
+  padding: 5px 10px;
+  margin: 5px 0;
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .profile-card {
+    padding: 20px;
+  }
+  .profile-header {
+    flex-direction: column;
+  }
+  .action-btn {
+    margin-top: 10px;
+  }
+}
+
+/* Bio Analysis Integration Styles */
+.bio-analysis-wrapper {
+  background-color: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 24px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.analysis-title {
+  color: #4a5568;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+/* When bio analysis section is shown, make the card wider */
+.modern-profile-card:has(.bio-analysis-wrapper) {
+  max-width: 700px;
+  transition: max-width 0.3s ease-in-out;
+}
+
+/* Feature Toggle Buttons Container */
+.feature-toggle-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  margin-bottom: 20px;
+}
+
+.feature-toggle-header {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.feature-toggle-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #2d3748;
+  margin: 0 0 8px;
+}
+
+.feature-toggle-header p {
+  font-size: 14px;
+  color: #718096;
+  margin: 0;
+}
+
+.feature-toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+/* Toggle Button Styling */
+.feature-toggle-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #4a5568;
+  font-size: 15px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 140px;
+}
+
+.feature-toggle-btn i {
+  margin-right: 10px;
+  font-size: 18px;
+}
+
+.feature-toggle-btn:hover {
+  background: #f7fafc;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-toggle-btn.active {
+  background: #ff6200;
+  color: white;
+  border-color: #ff6200;
+  box-shadow: 0 4px 10px rgba(255, 98, 0, 0.3);
+}
+
+/* Feature Toggle Badge */
+.feature-toggle-btn .badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #ff6200;
+  color: white;
+  font-size: 11px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(255, 98, 0, 0.3);
+  border: 2px solid #ffffff;
+}
+
+/* Feature Content Card Styling */
+.feature-content-card {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08); /* Lighter shadow */
+  height: 500px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+/* Feature Header Styling */
+.feature-header {
+  padding: 20px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f8fafc; /* Light background for header */
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+}
+
+.feature-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.badge-count {
+  background: #ff6200;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 50px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Feature Body Styling */
+.feature-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.empty-state-content {
+  padding: 40px;
+  color: #a0aec0;
+}
+
+.empty-state-content i {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state-content h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: #4a5568;
+}
+
+.empty-state-content p {
+  font-size: 14px;
+}
+
+/* Conversation Styling */
+.conversation-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 15px;
+  overflow-y: auto; /* Enable scrolling for overflow */
+  max-height: 430px; /* Allow scrolling in container */
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  margin-bottom: 12px; /* Added spacing between items */
+}
+
+.conversation-item:hover {
+  background: #edf2f7;
+  transform: translateY(-2px); /* Slight lift on hover */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.notification-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+  background: #e2e8f0;
+  color: #4a5568;
+}
+
+/* Loading indicators */
+.loading-indicator {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
+  color: #718096;
+}
+
+.loading-indicator .spinner-border {
+  width: 3rem;
+  height: 3rem;
+  color: #ff6200;
+  margin-bottom: 15px;
+}
+
+.loading-indicator p {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* Friend status indicator */
+.friend-status-indicator {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #cbd5e0;
+  border: 2px solid #fff;
+}
+
+.friend-status-indicator.online {
+  background: #48bb78;
+}
+
+/* Notification item when unread */
+.notification-item.unread {
+  background: #ebf8ff;
+  border-left: 3px solid #3182ce;
+}
+
+/* Delete button for notifications */
+.notification-btn.delete {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.notification-btn.delete:hover {
+  background: #feb2b2;
+}
+
+/* Additional info for suggestions */
+.suggestion-info {
+  margin: 0;
+  font-size: 12px;
+  color: #718096;
+  font-style: italic;
+}
+
+/* Fix for profile card on mobile */
+@media (max-width: 768px) {
+  .profile-layout-container {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .modern-profile-card,
+  .feature-column {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .feature-content-card {
+    height: auto;
+    min-height: 400px;
+    max-height: 600px;
+  }
+}
+
+.notification-icon.like {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.notification-icon.comment {
+  background: #c6f6d5;
+  color: #38a169;
+}
+
+.notification-icon.friend {
+  background: #bee3f8;
+  color: #3182ce;
+}
+
+.notification-icon.system {
+  background: #feebc8;
+  color: #dd6b20;
+}
+
+.notification-icon.event {
+  background: #e9d8fd;
+  color: #805ad5;
+}
+
+.notification-icon i {
+  font-size: 18px;
+}
+
+.notification-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-text {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: #2d3748;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #a0aec0;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notification-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.notification-btn:hover {
+  background: #cbd5e0;
+}
+
+.notification-btn.mark-read {
+  background: #ebf8ff;
+  color: #3182ce;
+}
+
+.notification-btn.mark-read:hover {
+  background: #bee3f8;
+}
+
+/* Friends Tab Styling */
+.friend-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 12px;
+}
+
+.friend-tab {
+  padding: 8px 16px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #4a5568;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.friend-tab:hover {
+  background: #edf2f7;
+}
+
+.friend-tab.active {
+  background: #4299e1;
+  color: white;
+  border-color: #3182ce;
+}
+
+/* Friends List Styling */
+.friends-list, .friend-requests, .friend-suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.friend-item, .request-item, .suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.friend-item:hover, .request-item:hover, .suggestion-item:hover {
+  background: #edf2f7;
+}
+
+.friend-avatar, .request-avatar, .suggestion-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.friend-avatar img, .request-avatar img, .suggestion-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.friend-content, .request-content, .suggestion-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-name, .request-name, .suggestion-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.friend-status, .request-mutual, .suggestion-mutual {
+  margin: 0;
+  font-size: 13px;
+  color: #718096;
+}
+
+.friend-actions, .request-actions, .suggestion-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.friend-action-btn, .request-action-btn, .suggestion-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.friend-action-btn:hover, .request-action-btn:hover, .suggestion-action-btn:hover {
+  background: #cbd5e0;
+}
+
+.request-action-btn.accept {
+  background: #c6f6d5;
+  color: #38a169;
+}
+
+.request-action-btn.accept:hover {
+  background: #9ae6b4;
+}
+
+.request-action-btn.decline {
+  background: #fed7d7;
+  color: #e53e3e;
+}
+
+.request-action-btn.decline:hover {
+  background: #feb2b2;
+}
+
+.suggestion-action-btn.add {
+  background: #bee3f8;
+  color: #3182ce;
+}
+
+.suggestion-action-btn.add:hover {
+  background: #90cdf4;
+}
+
+/* Responsive Layout Adjustments */
+@media (max-width: 992px) {
+  .profile-layout-container {
+    flex-direction: column;
+  }
+  
+  .profile-column {
+    flex: none;
+    max-width: 100%;
+  }
+  
+  .feature-content-card {
+    height: auto;
+    max-height: 500px;
+  }
+}

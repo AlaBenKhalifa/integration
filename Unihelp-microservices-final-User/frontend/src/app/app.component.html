@@ -1,0 +1,71 @@
+<!-- App Layout -->
+<div class="app-container">
+  <!-- Only show the header/footer if no error occurred -->
+  <app-header *ngIf="!error"></app-header>
+  
+  <main class="main-content">
+    <!-- Show loading indicator -->
+    <div *ngIf="!isLoaded && !error" class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading UniHelp...</p>
+    </div>
+    
+    <!-- Show error message if something went wrong -->
+    <div *ngIf="error" class="error-container">
+      <h2>Something went wrong</h2>
+      <p>We're having trouble with some UI components. The application may still work.</p>
+      <button (click)="error = null; isLoaded = true;">Continue Anyway</button>
+      <button (click)="window.location.reload()">Refresh Page</button>
+    </div>
+    
+    <!-- Main content area with router outlet -->
+    <router-outlet *ngIf="isLoaded"></router-outlet>
+  </main>
+  
+  <app-footer *ngIf="!error"></app-footer>
+</div>
+
+<!-- Add basic styling for loading and error states -->
+<style>
+  .loading-container, .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50vh;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .error-container {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+  }
+  
+  .error-container button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+</style>

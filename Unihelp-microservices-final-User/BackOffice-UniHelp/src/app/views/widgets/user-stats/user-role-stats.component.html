@@ -1,0 +1,102 @@
+<c-card>
+  <c-card-header>
+    <h4 class="card-title mb-0">User Role Statistics</h4>
+    <div class="small text-body-secondary">UniHelp Users by Role</div>
+  </c-card-header>
+  <c-card-body>
+    <div class="text-center mb-4" *ngIf="loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="text-center mb-4" *ngIf="error && !loading">
+      <p class="text-danger">{{ error }}</p>
+      <button cButton color="primary" (click)="refreshStats()">Retry</button>
+    </div>
+
+    <div *ngIf="!loading && !error">
+      <div class="row align-items-center">
+        <!-- Donut chart -->
+        <div class="col-lg-5 text-center">
+          <div style="height: 250px; position: relative;">
+            <c-chart
+              type="doughnut"
+              [data]="userChartData"
+              [options]="donutOptions"
+            ></c-chart>
+          </div>
+          <div class="chart-legend mt-3">
+            <span class="badge bg-primary me-2">Admin</span>
+            <span class="badge bg-success me-2">Student</span>
+            <span class="badge bg-warning me-2">Mentor</span>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="col-lg-7">
+          <div class="row">
+            <div class="col-12 mb-3">
+              <h5>Total Users: {{ userStats.total }}</h5>
+              <p class="text-body-secondary mb-0">
+                <span class="badge bg-success me-1">{{ userStats.active }} Active</span>
+                <span class="badge bg-danger">{{ userStats.banned }} Banned</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Admin Users -->
+          <div class="progress-group mb-4">
+            <div class="progress-group-header align-items-center d-flex">
+              <svg cIcon name="cilPeople" class="text-primary me-2" width="24" height="24"></svg>
+              <span>Admin Users</span>
+              <span class="ms-auto fw-semibold">
+                {{ userStats.admin }}
+                <span class="text-body-secondary small">({{ getPercentage(userStats.admin) }}%)</span>
+              </span>
+            </div>
+            <div class="progress-group-bars">
+              <c-progress thin color="primary" [value]="getPercentage(userStats.admin)"></c-progress>
+            </div>
+          </div>
+
+          <!-- Student Users -->
+          <div class="progress-group mb-4">
+            <div class="progress-group-header align-items-center d-flex">
+              <svg cIcon name="cilUser" class="text-success me-2" width="24" height="24"></svg>
+              <span>Student Users</span>
+              <span class="ms-auto fw-semibold">
+                {{ userStats.student }}
+                <span class="text-body-secondary small">({{ getPercentage(userStats.student) }}%)</span>
+              </span>
+            </div>
+            <div class="progress-group-bars">
+              <c-progress thin color="success" [value]="getPercentage(userStats.student)"></c-progress>
+            </div>
+          </div>
+
+          <!-- Mentor/Professor Users -->
+          <div class="progress-group mb-4">
+            <div class="progress-group-header align-items-center d-flex">
+              <svg cIcon name="cilEducation" class="text-warning me-2" width="24" height="24"></svg>
+              <span>Mentor/Professor Users</span>
+              <span class="ms-auto fw-semibold">
+                {{ userStats.mentor }}
+                <span class="text-body-secondary small">({{ getPercentage(userStats.mentor) }}%)</span>
+              </span>
+            </div>
+            <div class="progress-group-bars">
+              <c-progress thin color="warning" [value]="getPercentage(userStats.mentor)"></c-progress>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </c-card-body>
+  <c-card-footer>
+    <button cButton color="primary" class="float-end" (click)="refreshStats()">
+      <svg cIcon name="cilReload" class="me-1"></svg> Refresh
+    </button>
+    <small class="text-body-secondary">Last updated: {{ loading ? 'loading...' : (lastUpdated | date:'medium') }}</small>
+  </c-card-footer>
+</c-card>

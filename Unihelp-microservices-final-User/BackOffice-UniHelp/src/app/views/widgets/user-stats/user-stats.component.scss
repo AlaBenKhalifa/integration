@@ -1,0 +1,25 @@
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.progress-group-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-group {
+  margin-bottom: 1rem;
+}
+
+.cil-people, .cil-user, .cil-education {
+  display: inline-block;
+  width: 24px;
+}
+
+// Make the stats more visually appealing
+.badge {
+  padding: 0.4rem 0.6rem;
+}

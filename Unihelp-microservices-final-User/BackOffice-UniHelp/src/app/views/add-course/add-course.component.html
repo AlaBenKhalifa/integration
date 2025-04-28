@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create a Course</title>
+  <!-- Bootstrap 5 CSS (for tooltips and utilities) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <!-- Animate.css -->
+  <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+</head>
+<body>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(145deg, #f0f4ff, #d9e2ff);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+
+  .header-section {
+    background: linear-gradient(to right, #2563eb, #7c3aed);
+    color: white;
+    padding: 4rem 2rem;
+    text-align: center;
+    border-bottom-left-radius: 2rem;
+    border-bottom-right-radius: 2rem;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .header-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.2), transparent);
+    opacity: 0.3;
+  }
+
+  .header-section h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+  }
+
+  .header-section p {
+    font-size: 1.2rem;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.95;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-card {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    margin-top: -3rem;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    position: relative;
+  }
+
+  .form-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-field {
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  input, textarea, select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    color: #1e3a8a;
+    background: #f8fafc;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    transform: translateY(-2px);
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  select {
+    appearance: none;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="%231e3a8a" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2 4l4 4 4-4"/></svg>') no-repeat right 1rem center #f8fafc;
+    padding-right: 2.5rem;
+  }
+
+  input.is-invalid, textarea.is-invalid, select.is-invalid {
+    border-color: #dc2626;
+  }
+
+  .floating-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+
+  input:focus + .floating-label,
+  textarea:focus + .floating-label,
+  select:focus + .floating-label {
+    color: #2563eb;
+  }
+
+  .error-message {
+    font-size: 0.875rem;
+    color: #dc2626;
+    margin-top: 0.25rem;
+  }
+
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 1rem;
+    padding: 2rem;
+    text-align: center;
+    transition: border-color 0.3s ease, background 0.3s ease;
+    cursor: pointer;
+  }
+
+  .upload-area:hover {
+    border-color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
+  }
+
+  .upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: #1e3a8a;
+    font-weight: 500;
+  }
+
+  .upload-icon svg {
+    width: 2rem;
+    height: 2rem;
+    transition: transform 0.3s ease;
+  }
+
+  .upload-area:hover .upload-icon svg {
+    transform: scale(1.2);
+  }
+
+  .preview-area {
+    margin-top: 1rem;
+    position: relative;
+    display: inline-block;
+  }
+
+  .preview-image {
+    max-width: 300px;
+    height: auto;
+    border-radius: 0.75rem;
+    border: 3px solid #2563eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+
+  .preview-area:hover .preview-image {
+    transform: scale(1.05);
+  }
+
+  .remove-image-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #dc2626;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .remove-image-btn:hover {
+    transform: scale(1.2);
+  }
+
+  .remove-image-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: white;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .cancel-btn, .submit-btn {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    border: none;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .cancel-btn {
+    background: linear-gradient(45deg, #e5e7eb, #d1d5db);
+    color: #374151;
+  }
+
+  .cancel-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .submit-btn {
+    background: linear-gradient(45deg, #10b981, #059669);
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  }
+
+  .submit-btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .submit-btn:not(:disabled)::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+  }
+
+  .submit-btn:hover::before {
+    width: 200px;
+    height: 200px;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 768px) {
+    .header-section {
+      padding: 3rem 1rem;
+    }
+    .header-section h1 {
+      font-size: 2.5rem;
+    }
+    .header-section p {
+      font-size: 1rem;
+    }
+    .form-card {
+      padding: 1.5rem;
+      margin-top: -2rem;
+    }
+    .form-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .cancel-btn, .submit-btn {
+      width: 100%;
+      text-align: center;
+    }
+    .preview-image {
+      max-width: 100%;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .container {
+      padding: 1rem;
+    }
+    .form-card {
+      border-radius: 1rem;
+    }
+  }
+</style>
+
+<section class="header-section animate__animated animate__fadeIn">
+  <div class="container">
+    <h1>Create Your Course</h1>
+    <p>Unleash your expertise and inspire learners worldwide with a captivating course.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="form-card">
+    <form (ngSubmit)="addCourse()" #courseForm="ngForm">
+      <!-- Title -->
+      <div class="form-field">
+        <div class="input-wrapper">
+          <label for="title" class="floating-label">Course Title</label>
+          <input
+            type="text"
+            id="title"
+            [(ngModel)]="course.title"
+            name="title"
+            required
+            #title="ngModel"
+            [ngClass]="{'is-invalid': title.invalid && (title.dirty || title.touched)}"
+          >
+        </div>
+        <div *ngIf="title.invalid && (title.dirty || title.touched)" class="error-message animate__animated animate__shakeX">
+          Please enter a captivating title.
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-field">
+        <div class="input-wrapper">
+          <label for="description" class="floating-label">Description</label>
+          <textarea
+            id="description"
+            [(ngModel)]="course.description"
+            name="description"
+            required
+            rows="4"
+            #description="ngModel"
+            [ngClass]="{'is-invalid': description.invalid && (description.dirty || description.touched)}"
+          ></textarea>
+        </div>
+        <div *ngIf="description.invalid && (description.dirty || description.touched)" class="error-message animate__animated animate__shakeX">
+          Description is required to engage your audience.
+        </div>
+      </div>
+
+      <!-- Category -->
+      <div class="form-field">
+        <div class="input-wrapper">
+          <label for="category" class="floating-label">Category</label>
+          <select
+            id="category"
+            [(ngModel)]="course.category"
+            name="category"
+            required
+            #category="ngModel"
+            [ngClass]="{'is-invalid': category.invalid && (category.dirty || category.touched)}"
+          >
+            <option value="" disabled selected>Select category</option>
+            <option *ngFor="let category of categories" [value]="category">{{ category }}</option>
+          </select>
+        </div>
+        <div *ngIf="category.invalid && (category.dirty || category.touched)" class="error-message animate__animated animate__shakeX">
+          Choose a category to match your course.
+        </div>
+      </div>
+
+      <!-- Level -->
+      <div class="form-field">
+        <div class="input-wrapper">
+          <label for="level" class="floating-label">Level</label>
+          <select
+            id="level"
+            [(ngModel)]="course.level"
+            name="level"
+            required
+            #level="ngModel"
+            [ngClass]="{'is-invalid': level.invalid && (level.dirty || level.touched)}"
+          >
+            <option value="" disabled selected>Select level</option>
+            <option *ngFor="let level of levels" [value]="level">{{ level }}</option>
+          </select>
+        </div>
+        <div *ngIf="level.invalid && (level.dirty || level.touched)" class="error-message animate__animated animate__shakeX">
+          Select a level for your course.
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="form-field">
+        <div class="input-wrapper">
+          <label for="price" class="floating-label">Price ($)</label>
+          <input
+            type="number"
+            id="price"
+            [(ngModel)]="course.price"
+            name="price"
+            required
+            min="0"
+            step="0.01"
+            #price="ngModel"
+            [ngClass]="{'is-invalid': price.invalid && (price.dirty || price.touched)}"
+          >
+        </div>
+        <div *ngIf="price.invalid && (price.dirty || price.touched)" class="error-message animate__animated animate__shakeX">
+          Set a price for your course.
+        </div>
+      </div>
+
+      <!-- Thumbnail Upload -->
+      <div class="form-field">
+        <div class="upload-area">
+          <input
+            type="file"
+            id="thumbnail"
+            accept="image/*"
+            (change)="onThumbnailSelected($event)"
+            hidden
+          >
+          <label for="thumbnail" class="upload-label">
+              <span class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+              </span>
+            <span>Upload Thumbnail</span>
+          </label>
+        </div>
+        <div class="preview-area" *ngIf="course.thumbnailUrl">
+          <img
+            [src]="course.thumbnailUrl"
+            alt="Thumbnail preview"
+            class="preview-image animate__animated animate__fadeIn"
+          >
+          <button class="remove-image-btn" (click)="removeThumbnail()" data-bs-toggle="tooltip" title="Remove thumbnail">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="form-actions">
+        <button
+          type="button"
+          class="cancel-btn"
+          [routerLink]="['/courses']"
+          data-bs-toggle="tooltip"
+          title="Cancel and return to courses"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="courseForm.invalid"
+          [routerLink]="['/courses']"
+
+          data-bs-toggle="tooltip"
+          title="Create your course"
+        >
+          Add Course
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+<script>
+  // Initialize Bootstrap tooltips
+  document.addEventListener('DOMContentLoaded', function () {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+  });
+</script>
+</body>
+</html>

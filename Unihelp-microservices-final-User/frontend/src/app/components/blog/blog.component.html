@@ -1,0 +1,121 @@
+<style>
+  .imagee {
+    position: relative;
+    /* Ensure the pseudo-element is positioned relative to this container */
+    background-image: url('../../../assets/img/blog/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+
+  .imagee::before {
+    content: '';
+    /* Required for pseudo-elements */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(4, 9, 30, 0.8);
+    /* Semi-transparent blue overlay */
+    z-index: 1;
+    /* Ensure the overlay is above the background image */
+  }
+
+  .imagee .content {
+    position: relative;
+    z-index: 2;
+    /* Content above the overlay */
+    background: transparent;
+    /* Ensure no background interference */
+    color: inherit;
+    /* Ensure text color isn't affected */
+  }
+</style>
+<div class="imagee">
+  <div class="content">
+    <br><br><br><br><br><br>
+
+    <div class="container p-4">
+      <div class="row p-4">
+        <div class="input-group mb-3">
+          <select class="form-select" style="max-width: 150px;" [(ngModel)]="selectedCategory"
+                  (change)="onFilterChange()">
+            <option value="">All Categories</option>
+            <option value="IT">IT</option>
+            <option value="Science">Science</option>
+            <option value="LifeStyle">LifeStyle</option>
+            <option value="History">History</option>
+            <option value="Psychology">Psychology</option>
+          </select>
+          <input type="text" class="form-control" placeholder="Search..." [(ngModel)]="searchQuery"
+                 (input)="onFilterChange()">
+        </div>
+        <!-- Sync Button -->
+        <div class="mb-3">
+          <button class="btn btn-primary m-3" (click)="syncPendingBlogs()"
+                  [disabled]="isOffline || pendingBlogs.length === 0">
+            Sync Pending Blogs ({{ pendingBlogs.length }})
+          </button>
+          <button class="btn btn-primary" (click)="AddBlog()">
+            Add Blog
+          </button>
+        </div>
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+      </div>
+    </div>
+
+
+    <br>
+
+    <div class="container">
+      <div class="row mt-n5">
+        <div *ngFor="let blog of filteredBlogs;" class="col-lg-4 col-md-6 col-sm-12 mb-5 wow fadeInUp">
+          <div class="blog-grid">
+            <div class="blog-grid-img position-relative">
+              <img *ngIf="blog.imagepath; else placeholder" [src]="getImageUrl(blog.imagepath)" alt="{{ blog.title }}">
+              <ng-template #placeholder>
+                <img src="https://www.bootdey.com/image/480x480/00FFFF/000000" alt="Placeholder">
+              </ng-template>
+              <!-- Pending Indicator -->
+              <div *ngIf="blog.isPending" class="badge bg-warning text-dark position-absolute top-0 start-0">
+                Pending Sync
+              </div>
+            </div>
+            <div class="blog-grid-text p-4">
+              <h3 class="h5 mb-3">
+                <a [routerLink]="blog.isPending ? [] : ['/blog', blog.idBlog]">
+                  {{ blog.title }} {{ blog.isVerified ? '' : '(Unverified)' }}
+                </a>
+              </h3>
+              <p class="display-30">{{ blog.content | slice:0:47 }}...</p>
+              <div class="meta meta-style2">
+                <ul>
+                  <li><i class="fa fa-user"></i> {{ blog.user?.firstName || 'User' }}</li>
+                  <li><i class="fa fa-comments"></i> {{ blog.comments?.length || 0 }}</li>
+                  <div *ngIf="isBlogDeletable(blog.userId)">
+                    <li>
+                      <a (click)="DeleteBlog(blog.idBlog, blog.offlineId)">
+                        <i class="fa fa-trash"></i> Delete
+                      </a>
+                    </li>
+                  </div>
+                  <div *ngIf="isBlogDeletable(blog.userId) && !blog.isPending">
+                    <li>
+                      <a [routerLink]="['/editblog', blog.idBlog]">
+                        <i class="fa fa-edit"></i> Edit
+                      </a>
+                    </li>
+                  </div>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

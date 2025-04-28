@@ -1,0 +1,70 @@
+/* Adjust the size of the buttons */
+.nav-menu .btn {
+    padding: 5px 10px; /* Reduced padding to make the buttons smaller */
+    font-size: 12px; /* Smaller font size */
+    border-radius: 3px; /* Slightly smaller border radius */
+  }
+  
+  /* Flex container for spacing between the buttons */
+  .nav-menu .login-signup {
+    margin-right: 10px; /* Add margin between the buttons */
+  }
+  
+  /* Styling for the Login button (outline) */
+  .nav-menu .btn-outline-primary {
+    border: 1px solid #F7631B; /* Border color updated */
+    color: #F7631B; /* Text color updated */
+    background-color: transparent; /* Make sure background is transparent */
+  }
+  
+  /* Styling for the Sign Up button (filled) */
+  .nav-menu .btn-primary {
+    background-color: #F7631B; /* Background color updated */
+    color: white; /* Text color is white for contrast */
+    border: none; /* Remove the blue border */
+  }
+  
+  /* Hover state */
+  .nav-menu .btn-outline-primary:hover {
+    background-color: #F7631B; /* Background color change to orange */
+    color: white; /* Text color change to white */
+  }
+  
+  .nav-menu .btn-primary:hover {
+    background-color: white; /* Background color change to white */
+    color: #F7631B; /* Text color change to orange */
+  }
+  
+  /* Focused/Active state for the Login button (when clicked/selected) */
+  .nav-menu .btn-outline-primary:focus,
+  .nav-menu .btn-outline-primary:active {
+    background-color: white; /* White background for active state */
+    color: #F7631B; /* Orange text for active state */
+    border-color: #F7631B; /* Maintain orange border */
+    outline: none !important; /* Remove blue border outline on focus */
+  }
+  
+  /* Focused/Active state for the Sign Up button (when clicked/selected) */
+  .nav-menu .btn-primary:focus,
+  .nav-menu .btn-primary:active {
+    background-color: white; /* White background for active state */
+    color: #F7631B; /* Orange text for active state */
+    border-color: #F7631B; /* Maintain orange border */
+    outline: none !important; /* Remove blue border outline on focus */
+  }
+  
+  /* Remove blue border on focus for Sign Up button */
+  .nav-menu .btn-primary:focus {
+    outline: none !important; /* Remove default blue outline */
+    background-color: white; /* White background on focus */
+    color: #F7631B; /* Orange text */
+    border: 1px solid #F7631B; /* Orange border */
+  }
+  
+  /* Remove blue border on focus for Login button */
+  .nav-menu .btn-outline-primary:focus {
+    outline: none !important; /* Remove default blue outline */
+  }
+  
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

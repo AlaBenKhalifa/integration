@@ -1,0 +1,164 @@
+<div *ngIf="loading" class="text-center my-4">
+  <span>Loading users...</span>
+</div>
+<div *ngIf="error" class="alert alert-danger my-4">
+  {{ error }}
+</div>
+<div class="mb-3 d-flex flex-wrap align-items-center gap-2 justify-content-between">
+  <div class="d-flex gap-3 align-items-center" style="background: #f8f9fa; border-radius: 2rem; padding: 0.75rem 1.25rem;">
+  <select class="form-select form-select-sm rounded-pill shadow-sm border-0" style="width:140px;min-width:110px;" [(ngModel)]="filterRole" (ngModelChange)="currentPage = 1; updatePaginatedUsers()">
+    <option value="">Role: All</option>
+    <option *ngFor="let role of uniqueRoles" [value]="role">{{ role }}</option>
+  </select>
+  <select class="form-select form-select-sm rounded-pill shadow-sm border-0" style="width:140px;min-width:110px;" [(ngModel)]="filterBanned" (ngModelChange)="currentPage = 1; updatePaginatedUsers()">
+    <option value="">Banned: All</option>
+    <option value="banned">Banned</option>
+    <option value="notbanned">Not Banned</option>
+  </select>
+</div>
+  <div style="min-width:170px;max-width:220px;">
+    <div class="input-group input-group-sm">
+      <input
+        type="text"
+        class="form-control"
+        style="padding-right:2.5rem;"
+        placeholder="Search..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="currentPage = 1; updatePaginatedUsers()"
+      />
+      <span class="input-group-text bg-white border-start-0" style="position:absolute;right:0;z-index:10;">
+        <i class="bi bi-search"></i>
+      </span>
+    </div>
+  </div>
+</div>
+
+<table *ngIf="!loading && !error" class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">User</th>
+      <th scope="col">Email</th>
+      <th scope="col">Banned</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <ng-container *ngFor="let user of paginatedUsers; let i = index">
+      <tr>
+        <th scope="row">{{ (currentPage - 1) * pageSize + i + 1 }}</th>
+        <td>
+          <div class="d-flex align-items-center">
+            <ng-container *ngIf="user.profileImage; else defaultAvatar">
+  <img [src]="'data:image/jpeg;base64,' + user.profileImage" alt="Profile" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;">
+</ng-container>
+<ng-template #defaultAvatar>
+  <span class="rounded-circle me-2 d-inline-block" style="width:40px;height:40px;background:#eee;text-align:center;line-height:40px;">
+    <i class="bi bi-person" style="font-size:1.5em;color:#bbb;"></i>
+  </span>
+</ng-template>
+            <div>
+              <div class="fw-bold">{{ user.firstName }} {{ user.lastName }}</div>
+              <div class="text-muted" style="font-size:0.85em;">{{ user.role }}</div>
+            </div>
+          </div>
+        </td>
+        <td>{{ user.email }}</td>
+        <td>
+          <span *ngIf="user.banned" class="badge bg-danger">Yes</span>
+          <span *ngIf="!user.banned" class="badge bg-success">No</span>
+        </td>
+        <td>
+          <button *ngIf="!user.banned" class="btn btn-sm btn-warning me-1" (click)="onBan(user)">
+            <i class="cil-ban"></i>
+          </button>
+          <button *ngIf="user.banned" class="btn btn-sm btn-secondary me-1" (click)="onUnban(user)">
+            <i class="cil-check-circle"></i>
+          </button>
+          <button class="btn btn-sm btn-danger me-1" (click)="onDelete(user)">
+            <i class="cil-trash"></i>
+          </button>
+          <button class="btn btn-sm btn-info me-1" (click)="onModify(user)">
+            <i class="cil-pencil"></i>
+          </button>
+          <button class="btn btn-link p-0 m-0 align-baseline" (click)="toggleExpand(user.id)" title="Toggle Details">
+            <i [ngClass]="expandedUserId === user.id ? 'cil-chevron-top' : 'cil-chevron-bottom'"></i>
+          </button>
+        </td>
+      </tr>
+      <tr *ngIf="editUserId === user.id" #editRow>
+        <td colspan="7">
+          <form (ngSubmit)="onSaveEdit(editUserId)" class="row g-2 align-items-center">
+            <div class="col">
+              <input type="text" class="form-control" [(ngModel)]="editUserData.firstName" name="firstName" placeholder="First Name" required />
+            </div>
+            <div class="col">
+              <input type="text" class="form-control" [(ngModel)]="editUserData.lastName" name="lastName" placeholder="Last Name" required />
+            </div>
+            <div class="col">
+              <input type="email" class="form-control" [(ngModel)]="editUserData.email" name="email" placeholder="Email" required />
+            </div>
+            <div class="col">
+              <input type="text" class="form-control" [(ngModel)]="editUserData.bio" name="bio" placeholder="Bio" />
+            </div>
+            <div class="col">
+              <input type="text" class="form-control" [(ngModel)]="editUserData.skills" name="skills" placeholder="Skills" />
+            </div>
+            <!-- Password field intentionally removed for security reasons -->
+            <div class="col-auto">
+              <button type="submit" class="btn btn-success btn-sm">Save</button>
+              <button type="button" class="btn btn-secondary btn-sm ms-2" (click)="onCancelEdit()">Cancel</button>
+            </div>
+          </form>
+        </td>
+      </tr>
+      <tr *ngIf="expandedUserId === user.id && editUserId !== user.id">
+        <td colspan="5" class="bg-light">
+          <div class="card shadow-sm border-0 my-2" style="max-width: 600px; margin: 0 auto;">
+            <div class="card-body d-flex align-items-center">
+              <div class="me-4 flex-shrink-0">
+                <img [src]="'data:image/jpeg;base64,' + user.profileImage" *ngIf="user.profileImage" alt="Profile" class="rounded-circle border" style="width:90px;height:90px;object-fit:cover;">
+                <span *ngIf="!user.profileImage" class="rounded-circle d-inline-block bg-secondary" style="width:90px;height:90px;line-height:90px;text-align:center;color:white;font-size:2.5em;"> <i class="cil-user"></i> </span>
+              </div>
+              <div class="flex-grow-1">
+                <div class="mb-2"><span class="fw-bold">{{ user.firstName }} {{ user.lastName }}</span> <span class="badge bg-light text-dark ms-2">{{ user.role }}</span></div>
+                <div class="mb-1"><i class="cil-envelope-closed me-1"></i> <span class="text-muted">{{ user.email }}</span></div>
+                <div class="mb-1"><i class="cil-ban me-1"></i> <span [ngClass]="user.banned ? 'text-danger' : 'text-success'">{{ user.banned ? 'Banned' : 'Active' }}</span></div>
+                <div *ngIf="user.bio" class="mb-1"><i class="cil-description me-1"></i> <span class="text-muted">{{ user.bio }}</span></div>
+                <div *ngIf="user.skills" class="mb-1"><i class="cil-star me-1"></i> <span class="text-muted">{{ user.skills }}</span></div>
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </ng-container>
+  </tbody>
+</table>
+
+<!-- Pagination Controls -->
+<div *ngIf="filteredUsers.length > 0" class="d-flex justify-content-between align-items-center mt-3">
+  <div>
+    <span class="text-muted">Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalItems) }} of {{ totalItems }} entries</span>
+  </div>
+  <nav aria-label="Users pagination">
+    <ul class="pagination">
+      <li class="page-item" [class.disabled]="currentPage === 1">
+        <a class="page-link" href="javascript:void(0)" (click)="previousPage()" aria-label="Previous">
+          <span aria-hidden="true">&laquo;</span>
+        </a>
+      </li>
+      <li class="page-item" *ngFor="let page of getPageNumbers()" [class.active]="page === currentPage">
+        <a class="page-link" href="javascript:void(0)" (click)="goToPage(page)">{{ page }}</a>
+      </li>
+      <li class="page-item" [class.disabled]="currentPage === getTotalPages()">
+        <a class="page-link" href="javascript:void(0)" (click)="nextPage()" aria-label="Next">
+          <span aria-hidden="true">&raquo;</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+
+<div *ngIf="filteredUsers.length === 0 && !loading" class="alert alert-warning text-center my-4">
+  <p class="mb-0">No users found matching your criteria.</p>
+</div>

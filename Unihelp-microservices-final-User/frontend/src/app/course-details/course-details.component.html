@@ -1,0 +1,134 @@
+<app-header></app-header>
+
+<div class="min-h-screen bg-gradient-to-br from-indigo-100 to-indigo-200 pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+  <!-- Hero Section -->
+  <div *ngIf="!loading && !errorMessage && course" class="relative bg-gradient-to-r from-indigo-600 to-purple-600 text-white overflow-hidden rounded-2xl shadow-2xl mb-12 animate-fade-in-down">
+    <div class="absolute inset-0 bg-cover bg-center opacity-30" [style.backgroundImage]="'url(' + (course.thumbnailUrl || 'https://via.placeholder.com/800x400') + ')'"></div>
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight mb-4">{{ course.title }}</h1>
+      <p class="text-lg sm:text-xl max-w-3xl">{{ course.description | slice:0:150 }}...</p>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-16 animate-pulse">
+      <svg class="animate-spin h-10 w-10 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="mt-4 text-lg text-gray-600">Loading course details...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="errorMessage && !loading" class="text-center py-16 bg-white rounded-2xl shadow-xl p-6 animate-fade-in-up">
+      <p class="text-xl text-red-600">{{ errorMessage }}</p>
+    </div>
+
+    <!-- Course Content -->
+    <div *ngIf="!loading && !errorMessage && course" class="flex flex-col lg:flex-row gap-8">
+      <!-- Main Content -->
+      <div class="lg:w-2/3 bg-white rounded-2xl shadow-xl p-6 animate-slide-in-left">
+        <div *ngIf="showFullContent">
+          <img [src]="course.thumbnailUrl || 'https://via.placeholder.com/800x400'"
+               alt="{{course.title}}"
+               class="w-full h-64 object-cover rounded-lg mb-6 transform hover:scale-105 transition-transform duration-300">
+          <div class="prose prose-indigo max-w-none">
+            <p class="text-gray-600 mb-6">{{ course.description }}</p>
+            <div *ngIf="course.modules && course.modules.length > 0" class="mt-8">
+              <h2 class="text-2xl font-semibold text-indigo-900 mb-6">Course Content</h2>
+              <div *ngFor="let module of course.modules; let i = index" class="mb-8">
+                <h3 class="text-xl font-medium text-gray-800 mb-3">{{ i + 1 }}. {{ module.title }}</h3>
+                <p class="text-gray-600 mb-4">{{ module.description }}</p>
+                <div *ngFor="let lesson of module.lessons" class="border-t border-gray-200 py-3">
+                  <div (click)="viewLesson(lesson)"
+                       class="group flex items-center cursor-pointer text-indigo-600 hover:text-indigo-800 transition-colors duration-200">
+                    <svg class="w-5 h-5 mr-2 text-indigo-600 group-hover:text-indigo-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>{{ lesson.title }}</span>
+                  </div>
+                </div>
+              </div>
+              <!-- Take Quiz Button -->
+              <button (click)="takeQuiz()"
+                      class="w-full mt-6 bg-gradient-to-r from-teal-500 to-cyan-600 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate__animated animate__pulse animate__infinite">
+                Take Quiz
+              </button>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!showFullContent" class="text-center">
+          <p class="text-lg text-gray-600 mb-6">Enroll to access the full course content, including modules, lessons, and resources.</p>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="lg:w-1/3 lg:sticky lg:top-24">
+        <div class="bg-white rounded-2xl shadow-xl p-6 animate-slide-in-right">
+          <div class="mb-6">
+            <p class="text-2xl font-semibold text-indigo-600">
+              {{ course.price === 0 ? 'Free' : '$' + course.price.toFixed(2) }}
+            </p>
+          </div>
+          <div class="space-y-4">
+            <p class="text-gray-600"><span class="font-medium">Category:</span> {{ course.category | titlecase }}</p>
+            <p class="text-gray-600"><span class="font-medium">Level:</span> {{ course.level | titlecase }}</p>
+            <p *ngIf="course.modules" class="text-gray-600"><span class="font-medium">Modules:</span> {{ course.modules.length }}</p>
+          </div>
+          <div *ngIf="course.price > 0 && !isEnrolled" class="mt-6">
+            <button (click)="enrollCourse()"
+                    class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-3 rounded-lg font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+              Enroll Now
+            </button>
+          </div>
+          <div *ngIf="isEnrolled || course.price === 0" class="mt-6 text-center">
+            <p class="text-green-600 font-semibold">Access Granted</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Chat Button (Visible only if enrolled) -->
+  <div *ngIf="isEnrolled || (course && course.price === 0)" class="fixed bottom-6 right-6 z-50">
+    <button (click)="toggleChat()"
+            class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 focus:outline-none">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Chat Popup -->
+  <div *ngIf="isChatOpen && course" class="fixed bottom-20 right-6 z-50 animate-slide-in-up">
+    <app-chatbot [courseId]="course.id" (closeChat)="toggleChat()"></app-chatbot>
+  </div>
+</div>
+
+<!-- Lesson Modal -->
+<div *ngIf="selectedLesson" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
+  <div class="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto transform scale-95 animate-scale-in">
+    <h2 class="text-2xl font-semibold text-indigo-900 mb-4">{{ selectedLesson.title }}</h2>
+    <p class="text-gray-600 mb-6">{{ selectedLesson.description }}</p>
+    <div *ngIf="selectedLesson.contentUrl" class="mb-6">
+      <video *ngIf="selectedLesson.contentType === 'video'" controls class="w-full h-auto max-h-[60vh] rounded-lg">
+        <source [src]="selectedLesson.contentUrl" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+      <img *ngIf="selectedLesson.contentType === 'image'" [src]="selectedLesson.contentUrl" alt="Lesson content" class="w-full h-auto max-h-[60vh] object-contain rounded-lg">
+      <a *ngIf="selectedLesson.contentType === 'pdf'" [href]="selectedLesson.contentUrl" target="_blank">
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        View PDF
+      </a>
+    </div>
+    <button (click)="closeModal()" class="w-full bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+      Close
+    </button>
+  </div>
+</div>
+
+<app-footer></app-footer>

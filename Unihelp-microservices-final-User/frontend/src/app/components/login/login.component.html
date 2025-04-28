@@ -1,0 +1,108 @@
+
+
+<!-- Reset Password Modal - Moved outside the login container for proper z-index handling -->
+<app-reset-password-modal
+  *ngIf="isModalOpen"
+  [token]="resetToken"
+  (close)="closeResetModal()"
+></app-reset-password-modal>
+
+<div class="login-container">
+  <!-- Left Section (Form) -->
+  <div class="form-section">
+    <div class="form-header">
+      <span class="dot"></span>
+      <h1>Log In</h1>
+    </div>
+    <p class="subheading">Welcome back! Please enter your details.</p>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          placeholder="Enter your email"
+          class="form-control"
+          required
+        />
+        <small *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+          Invalid email format
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            id="password"
+            formControlName="password"
+            placeholder="Enter your password"
+            class="form-control"
+            required
+          />
+          <i
+            class="eye-icon"
+            [ngClass]="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"
+            (click)="togglePasswordVisibility()"
+          ></i>
+        </div>
+        <small *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+          Password must be at least 6 characters
+        </small>
+      </div>
+
+      <div class="form-group forgot-password">
+        <a (click)="goToResetPassword()">Forgot password?</a>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button
+        type="submit"
+        class="genric-btn primary"
+        [ngClass]="{ loading: isLoading }"
+        [disabled]="loginForm.invalid || isLoading"
+      >
+        {{ isLoading ? 'Logging In...' : 'Log In' }}
+      </button>
+
+      <div class="social-login">
+        <p>Or Continue With</p>
+        <div class="social-buttons">
+          <!-- FedCM Google Sign-in Button Container -->
+          <div id="google-login-button" class="google-button-container"></div>
+          <!-- Removed Facebook button as it's not implemented yet -->
+        </div>
+        <div class="google-info">
+          <p><i class="fa fa-info-circle"></i> New to UniHelp? You can sign up with Google too!</p>
+        </div>
+      </div>
+
+      <p class="signup-link">
+        Don’t have account? <a (click)="goToSignUp()">Sign up</a>
+      </p>
+    </form>
+  </div>
+
+  <!-- Right Section (Photo Slider) -->
+  <div class="photo-section">
+    <div class="photo-slider">
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+      <img src="assets/img/students3.jpg" alt="Group project" />
+      <img src="assets/img/students4.jpg" alt="Graduation" />
+      <!-- Duplicate images for seamless looping -->
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+    </div>
+    <div class="photo-overlay">
+      <h2>Welcome to UniHelp</h2>
+      <p>Your university journey starts here. Connect with mentors, find resources, and achieve your academic goals.</p>
+    </div>
+  </div>
+</div>

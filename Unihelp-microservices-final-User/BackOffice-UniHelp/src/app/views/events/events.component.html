@@ -1,0 +1,174 @@
+<div class="content-wrapper">
+  <!-- Notification -->
+  <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;" *ngIf="notification">
+    <div class="alert alert-{{notification.type}} alert-dismissible fade show" role="alert">
+      {{notification.message}}
+      <button type="button" class="btn-close" (click)="notification = null" aria-label="Close"></button>
+    </div>
+  </div>
+
+  <div class="content-header">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">Event Management</h1>
+        </div>
+        <div class="col-sm-6 text-right">
+          <button class="btn btn-success" (click)="toggleForm()">
+            {{ showForm ? 'Cancel' : 'Add New Event' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form for Adding/Updating Events -->
+  <section class="content" *ngIf="showForm" id="event-form-section">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">{{ isEditing ? 'Edit Event' : 'Add New Event' }}</h3>
+            </div>
+            <div class="card-body">
+              <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
+                <div class="form-group">
+                  <label for="titre">Event Title</label>
+                  <input type="text" class="form-control" id="titre" formControlName="titre" required>
+                  <div *ngIf="eventForm.get('titre')?.touched && eventForm.get('titre')?.hasError('required')" class="text-danger">
+                    Event title is required
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="date">Event Date</label>
+                  <input type="date" class="form-control" id="date" formControlName="date" required>
+                  <div *ngIf="eventForm.get('date')?.touched && eventForm.get('date')?.hasError('required')" class="text-danger">
+                    Event date is required
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lieu">Location</label>
+                  <input type="text" class="form-control" id="lieu" formControlName="lieu" required>
+                  <div *ngIf="eventForm.get('lieu')?.touched && eventForm.get('lieu')?.hasError('required')" class="text-danger">
+                    Location is required
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="description">Description</label>
+                  <textarea class="form-control" id="description" formControlName="description" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" [disabled]="eventForm.invalid">
+                  {{ isEditing ? 'Update Event' : 'Add Event' }}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="content">
+    <div class="container-fluid">
+      <!-- Search Bar -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search by title or location" [(ngModel)]="searchTerm" (input)="searchEvents()">
+            <div class="input-group-append">
+              <span class="input-group-text">
+                <i class="cil-search"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-12">
+          <div *ngIf="displayEvents.length === 0" class="text-center">
+            <p>No events found. Try adding a new event or adjusting your search.</p>
+          </div>
+          <div class="card" *ngFor="let event of displayEvents" @fadeIn>
+            <div class="card-header">
+              <h3 class="card-title">{{ event.titre }}</h3>
+              <div class="card-tools">
+                <button type="button" class="btn btn-tool" (click)="toggleEventDetails(event.eventId)">
+                  <i class="cil-chevron-bottom"></i>
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <p><strong>Date:</strong> {{ event.date | date:'medium' }}</p>
+              <p><strong>Location:</strong> {{ event.lieu }}</p>
+              <p><strong>Description:</strong> {{ event.description }}</p>
+              <p><strong>Created by:</strong> {{ event.user?.firstName }} {{ event.user?.lastName }} ({{ event.user?.email }})</p>
+              <div *ngIf="expandedEvents[event.eventId]">
+                <p><strong>Event ID:</strong> {{ event.eventId }}</p>
+                <p><strong>User ID:</strong> {{ event.userId }}</p>
+              </div>
+            </div>
+            <div class="card-footer">
+              <button class="btn btn-primary" (click)="viewBookings(event.eventId)">View Bookings</button>
+              <button class="btn btn-warning" (click)="editEvent(event.eventId)">Edit</button>
+              <button class="btn btn-danger" (click)="deleteEvent(event.eventId)">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination Controls -->
+      <div class="row mt-3" *ngIf="totalPages > 1">
+        <div class="col-12 text-center">
+          <button class="btn btn-secondary mr-1" (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+            Previous
+          </button>
+          <span *ngFor="let page of getPageNumbers(); let i = index">
+            <button class="btn btn-outline-primary mr-1" [class.active]="currentPage === page" (click)="goToPage(page)">
+              {{ page }}
+            </button>
+          </span>
+          <button class="btn btn-secondary ml-1" (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bootstrap Modal for View Bookings -->
+  <div class="modal fade" [ngClass]="{'show d-block': showModal}" tabindex="-1" role="dialog" *ngIf="showModal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Bookings for {{ modalEventTitle }}</h5>
+          <button type="button" class="close" (click)="closeModal()" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="modalTickets.length === 0" class="text-center">
+            <i class="cil-calendar fa-2x mb-3 text-danger"></i>
+            <p>No bookings for this event yet.</p>
+          </div>
+          <div *ngIf="modalTickets.length > 0">
+            <div class="card mb-3" *ngFor="let ticket of modalTickets" @fadeIn>
+              <div class="card-body">
+                <p><strong>Ticket ID:</strong> {{ ticket.ticketId }}</p>
+                <p><strong>Name:</strong> {{ (ticket.user?.firstName || 'N/A') + ' ' + (ticket.user?.lastName || '') }}</p>
+                <p><strong>Email:</strong> {{ ticket.user?.email || 'N/A' }}</p>
+                <p><strong>Discount:</strong> {{ ticket.discount }}%</p>
+                <p><strong>Purchase Date:</strong> {{ ticket.dateAchat | date:'medium' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" *ngIf="showModal" (click)="closeModal()"></div>
+</div>

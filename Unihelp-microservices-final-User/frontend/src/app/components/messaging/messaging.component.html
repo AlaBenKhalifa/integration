@@ -1,0 +1,150 @@
+<!-- Messaging Component -->
+<div class="messaging-container">
+  <!-- Sidebar with conversations -->
+  <div class="conversations-sidebar">
+    <div class="sidebar-header">
+      <h3>Messages</h3>
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          (input)="searchConversations()"
+          placeholder="Search conversations"
+        >
+        <i class="fas fa-search"></i>
+      </div>
+    </div>
+
+    <div class="conversations-list">
+      <div *ngIf="isLoadingConversations" class="loading-conversations">
+        <div class="spinner"></div>
+        <p>Loading conversations...</p>
+      </div>
+
+      <div *ngIf="!isLoadingConversations && filteredConversations.length === 0" class="empty-conversations">
+        <i class="fas fa-comments empty-icon"></i>
+        <p>No conversations yet</p>
+        <small>Connect with other students to start messaging</small>
+      </div>
+
+      <div 
+        *ngFor="let conversation of filteredConversations" 
+        class="conversation-item"
+        [class.active]="getOtherUser(conversation).id === recipientId"
+        (click)="selectConversation(conversation)"
+      >
+        <div class="avatar" [style.background-image]="'url(' + (getOtherUser(conversation).profileImage || 'assets/default-avatar.png') + ')'"></div>
+        <div class="conversation-preview">
+          <div class="conversation-header">
+            <h4>{{getOtherUser(conversation).firstName}} {{getOtherUser(conversation).lastName}}</h4>
+            <span class="time">{{formatDate(conversation.sentAt)}}</span>
+          </div>
+          <p class="last-message" [class.unread]="!conversation.read && conversation.sender.id !== currentUser.id">
+            <span *ngIf="conversation.sender.id === currentUser.id">You: </span>
+            {{conversation.content | slice:0:30}}{{(conversation.content.length || 0) > 30 ? '...' : ''}}
+          </p>
+        </div>
+        <div *ngIf="!conversation.read && conversation.sender.id !== currentUser.id" class="unread-indicator"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main chat area -->
+  <div class="chat-area">
+    <!-- Chat header with recipient info -->
+    <div *ngIf="recipient" class="chat-header">
+      <div class="recipient-info">
+        <div class="avatar" [style.background-image]="'url(' + (recipient.profileImage || 'assets/default-avatar.png') + ')'"></div>
+        <div class="recipient-details">
+          <h4>{{recipient.firstName}} {{recipient.lastName}}</h4>
+          <p *ngIf="recipient.skills">{{recipient.skills | slice:0:40}}{{(recipient.skills.length || 0) > 40 ? '...' : ''}}</p>
+        </div>
+      </div>
+      
+      <!-- Friend request button if not friends -->
+      <div *ngIf="friendshipStatus !== 'FRIENDS'" class="friendship-actions">
+        <button 
+          *ngIf="friendshipStatus === 'NOT_FRIENDS'" 
+          class="add-friend-btn" 
+          (click)="sendFriendRequest()"
+        >
+          <i class="fas fa-user-plus"></i> Add Friend
+        </button>
+        <div *ngIf="friendshipStatus === 'PENDING'" class="pending-request">
+          <i class="fas fa-clock"></i> Pending Request
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty state when no conversation is selected -->
+    <div *ngIf="!recipient" class="empty-chat">
+      <i class="fas fa-comments empty-icon"></i>
+      <h3>Select a conversation</h3>
+      <p>Choose a contact from the left to start messaging</p>
+    </div>
+
+    <!-- Messages container -->
+    <div *ngIf="recipient" class="messages-container" #messageContainer (scroll)="onScroll()">
+      <!-- Loading indicator -->
+      <div *ngIf="isLoading" class="messages-loading">
+        <div class="spinner"></div>
+        <p>Loading messages...</p>
+      </div>
+
+      <!-- Load more button -->
+      <div *ngIf="hasMoreMessages && !loadingMore" class="load-more">
+        <button (click)="loadMoreMessages()">
+          <i class="fas fa-arrow-up"></i> Load earlier messages
+        </button>
+      </div>
+
+      <!-- Loading more indicator -->
+      <div *ngIf="loadingMore" class="loading-more">
+        <div class="spinner-small"></div>
+        <span>Loading more messages...</span>
+      </div>
+
+      <!-- No messages -->
+      <div *ngIf="!isLoading && currentConversation.length === 0" class="no-messages">
+        <p>No messages yet</p>
+        <span>Send a message to start the conversation</span>
+      </div>
+
+      <!-- Message bubbles -->
+      <div *ngFor="let msg of currentConversation" class="message-wrapper">
+        <div 
+          class="message-bubble" 
+          [class.sent]="msg.sender.id === currentUser.id" 
+          [class.received]="msg.sender.id !== currentUser.id"
+        >
+          <div class="message-content">{{msg.content}}</div>
+          <div class="message-info">
+            <span class="message-time">{{formatDate(msg.sentAt)}}</span>
+            <span *ngIf="msg.sender.id === currentUser.id" class="read-status">
+              <i *ngIf="msg.read" class="fas fa-check-double" title="Read"></i>
+              <i *ngIf="!msg.read" class="fas fa-check" title="Sent"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message input -->
+    <div *ngIf="recipient" class="message-input-container">
+      <textarea 
+        #messageInput
+        [(ngModel)]="message" 
+        placeholder="Type a message..." 
+        (keydown.enter)="sendMessage(); $event.preventDefault()"
+      ></textarea>
+      <button 
+        [disabled]="!message.trim()" 
+        (click)="sendMessage()" 
+        class="send-button"
+        [class.disabled]="!message.trim()"
+      >
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>

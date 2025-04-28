@@ -1,0 +1,46 @@
+.card {
+  margin-bottom: 20px;
+}
+
+.card-body p {
+  margin: 8px 0;
+}
+
+.card-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.modal-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-danger {
+  font-size: 0.875em;
+  margin-top: 5px;
+}
+
+.input-group {
+  max-width: 400px;
+  margin-bottom: 15px;
+}
+
+.mr-1 {
+  margin-right: 5px;
+}
+
+.btn-outline-primary.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}

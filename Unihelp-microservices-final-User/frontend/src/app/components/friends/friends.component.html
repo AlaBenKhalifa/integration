@@ -1,0 +1,182 @@
+<!-- Friends component -->
+<div class="friends-container">
+  <div class="friends-header">
+    <h2>Connect with Friends</h2>
+    <p>Expand your network with fellow students based on common skills and interests</p>
+  </div>
+
+  <div class="tabs-container">
+    <div class="tabs">
+      <button [class.active]="activeTab === 'friends'" (click)="changeTab('friends')">
+        <i class="fas fa-user-friends"></i> My Friends
+      </button>
+      <button [class.active]="activeTab === 'requests'" (click)="changeTab('requests')">
+        <i class="fas fa-user-plus"></i> Requests
+        <span class="badge" *ngIf="pendingRequests.length > 0">{{pendingRequests.length}}</span>
+      </button>
+      <button [class.active]="activeTab === 'discover'" (click)="changeTab('discover')">
+        <i class="fas fa-search"></i> Discover
+      </button>
+      <button [class.active]="activeTab === 'skill-matches'" (click)="changeTab('skill-matches')">
+        <i class="fas fa-lightbulb"></i> Skill Matches
+      </button>
+    </div>
+
+    <!-- Friends Tab -->
+    <div *ngIf="activeTab === 'friends'" class="tab-content">
+      <div *ngIf="isLoading" class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Loading your friends...</p>
+      </div>
+
+      <div *ngIf="!isLoading && friends.length === 0" class="empty-state">
+        <i class="fas fa-users empty-icon"></i>
+        <h3>No friends yet</h3>
+        <p>Connect with fellow students to expand your network!</p>
+        <button class="action-button" (click)="changeTab('discover')">Find Friends</button>
+      </div>
+
+      <div *ngIf="!isLoading && friends.length > 0" class="friends-grid">
+        <div *ngFor="let friend of friends" class="friend-card">
+          <div class="avatar" [style.background-image]="'url(' + (friend.profileImage || 'assets/default-avatar.png') + ')'"></div>
+          <div class="friend-info">
+            <h3>{{friend.firstName}} {{friend.lastName}}</h3>
+            <p class="friend-skills" *ngIf="friend.skills">{{friend.skills}}</p>
+            <p class="friend-bio" *ngIf="friend.bio">{{friend.bio | slice:0:60}}{{(friend.bio.length || 0) > 60 ? '...' : ''}}</p>
+            <div class="friend-actions">
+              <button class="view-profile-btn" (click)="viewProfile(friend.id)">
+                <i class="fas fa-user"></i> Profile
+              </button>
+              <button class="message-btn" (click)="startChat(friend.id)">
+                <i class="fas fa-comment"></i> Message
+              </button>
+              <button class="remove-btn" (click)="removeFriend(friend.friendshipId || 0)">
+                <i class="fas fa-user-minus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Requests Tab -->
+    <div *ngIf="activeTab === 'requests'" class="tab-content">
+      <div class="requests-container">
+        <div class="requests-section">
+          <h3>Friend Requests</h3>
+          <div *ngIf="pendingRequests.length === 0" class="empty-state">
+            <p>No pending friend requests</p>
+          </div>
+          <div *ngIf="pendingRequests.length > 0" class="requests-list">
+            <div *ngFor="let request of pendingRequests" class="request-card">
+              <div class="avatar" [style.background-image]="'url(' + (request.sender.profileImage || 'assets/default-avatar.png') + ')'"></div>
+              <div class="request-info">
+                <h4>{{request.sender.firstName}} {{request.sender.lastName}}</h4>
+                <p *ngIf="request.sender.skills">Skills: {{request.sender.skills | slice:0:30}}{{request.sender.skills?.length > 30 ? '...' : ''}}</p>
+                <div class="request-actions">
+                  <button class="accept-btn" (click)="acceptRequest(request.id)">
+                    <i class="fas fa-check"></i> Accept
+                  </button>
+                  <button class="decline-btn" (click)="declineRequest(request.id)">
+                    <i class="fas fa-times"></i> Decline
+                  </button>
+                  <button class="view-profile-btn small" (click)="viewProfile(request.sender.id)">
+                    <i class="fas fa-user"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="requests-section">
+          <h3>Sent Requests</h3>
+          <div *ngIf="sentRequests.length === 0" class="empty-state">
+            <p>No sent friend requests</p>
+          </div>
+          <div *ngIf="sentRequests.length > 0" class="requests-list">
+            <div *ngFor="let request of sentRequests" class="request-card sent">
+              <div class="avatar" [style.background-image]="'url(' + (request.recipient.profileImage || 'assets/default-avatar.png') + ')'"></div>
+              <div class="request-info">
+                <h4>{{request.recipient.firstName}} {{request.recipient.lastName}}</h4>
+                <p *ngIf="request.recipient.skills">Skills: {{request.recipient.skills | slice:0:30}}{{request.recipient.skills?.length > 30 ? '...' : ''}}</p>
+                <div class="sent-date">Sent: {{request.createdAt | date}}</div>
+                <div class="request-actions">
+                  <button class="cancel-btn" (click)="cancelRequest(request.id)">
+                    <i class="fas fa-undo"></i> Cancel
+                  </button>
+                  <button class="view-profile-btn small" (click)="viewProfile(request.recipient.id)">
+                    <i class="fas fa-user"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Discover Tab -->
+    <div *ngIf="activeTab === 'discover'" class="tab-content">
+      <div *ngIf="suggestions.length === 0" class="empty-state">
+        <i class="fas fa-search empty-icon"></i>
+        <h3>No suggestions found</h3>
+        <p>Complete your profile to get better friend suggestions</p>
+      </div>
+
+      <div *ngIf="suggestions.length > 0" class="suggestions-container">
+        <h3>People You May Know</h3>
+        <div class="suggestions-grid">
+          <div *ngFor="let suggestion of suggestions" class="suggestion-card">
+            <div class="avatar" [style.background-image]="'url(' + (suggestion.profileImage || 'assets/default-avatar.png') + ')'"></div>
+            <div class="suggestion-info">
+              <h4>{{suggestion.firstName}} {{suggestion.lastName}}</h4>
+              <p *ngIf="suggestion.skills">Skills: {{suggestion.skills | slice:0:40}}{{(suggestion.skills.length || 0) > 40 ? '...' : ''}}</p>
+              <p *ngIf="suggestion.bio">{{suggestion.bio | slice:0:60}}{{(suggestion.bio.length || 0) > 60 ? '...' : ''}}</p>
+              <div class="suggestion-actions">
+                <button class="connect-btn" (click)="sendFriendRequest(suggestion.id)">
+                  <i class="fas fa-user-plus"></i> Connect
+                </button>
+                <button class="view-profile-btn" (click)="viewProfile(suggestion.id)">
+                  <i class="fas fa-user"></i> Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Skill Matches Tab -->
+    <div *ngIf="activeTab === 'skill-matches'" class="tab-content">
+      <div *ngIf="skillMatches.length === 0" class="empty-state">
+        <i class="fas fa-lightbulb empty-icon"></i>
+        <h3>No skill matches found</h3>
+        <p>Add more skills to your profile to find people with similar interests</p>
+      </div>
+
+      <div *ngIf="skillMatches.length > 0" class="skill-matches-container">
+        <h3>People with Similar Skills</h3>
+        <div class="skill-matches-grid">
+          <div *ngFor="let match of skillMatches" class="skill-match-card">
+            <div class="avatar" [style.background-image]="'url(' + (match.profileImage || 'assets/default-avatar.png') + ')'"></div>
+            <div class="match-info">
+              <h4>{{match.firstName}} {{match.lastName}}</h4>
+              <div class="match-skills">
+                <p>Skills: {{match.skills ? (match.skills | slice:0:50) : ''}}{{match.skills && match.skills.length > 50 ? '...' : ''}}</p>
+              </div>
+              <div class="match-actions">
+                <button class="connect-btn" (click)="sendFriendRequest(match.id)">
+                  <i class="fas fa-user-plus"></i> Connect
+                </button>
+                <button class="view-profile-btn" (click)="viewProfile(match.id)">
+                  <i class="fas fa-user"></i> Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

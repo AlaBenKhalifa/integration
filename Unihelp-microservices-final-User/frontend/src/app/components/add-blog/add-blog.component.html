@@ -1,0 +1,99 @@
+<app-header></app-header>
+<br><br><br><br><br><br><br><br><br>
+<div class="container">
+  <h2>{{ isEditMode ? 'Edit Blog' : 'Add a New Blog' }}</h2>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Blog Form -->
+  <form [formGroup]="blogForm" (ngSubmit)="onSubmit()">
+    <!-- Title -->
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input
+        type="text"
+        id="title"
+        class="form-control"
+        formControlName="title"
+        [class.is-invalid]="title?.invalid && (title?.dirty || title?.touched)"
+      >
+      <div *ngIf="title?.invalid && (title?.dirty || title?.touched)" class="invalid-feedback">
+        <div *ngIf="title?.errors?.['required']">Title is required.</div>
+        <div *ngIf="title?.errors?.['minlength']">Title must be at least 3 characters long.</div>
+      </div>
+    </div>
+
+    <!-- Category -->
+    <div class="form-group">
+      <label for="category">Category</label>
+      <select
+        id="category"
+        class="form-control"
+        formControlName="category"
+        [class.is-invalid]="category?.invalid && (category?.dirty || category?.touched)"
+      >
+        <option value="IT">IT</option>
+        <option value="Science">Science</option>
+        <option value="LifeStyle">LifeStyle</option>
+        <option value="History">History</option>
+        <option value="Psychology">Psychology</option>
+      </select>
+      <div *ngIf="category?.invalid && (category?.dirty || category?.touched)" class="invalid-feedback">
+        <div *ngIf="category?.errors?.['required']">Category is required.</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="form-group">
+      <label for="content">Content</label>
+      <textarea
+        id="content"
+        class="form-control"
+        formControlName="content"
+        rows="5"
+        [class.is-invalid]="content?.invalid && (content?.dirty || content?.touched)"
+      ></textarea>
+      <div *ngIf="content?.invalid && (content?.dirty || content?.touched)" class="invalid-feedback">
+        <div *ngIf="content?.errors?.['required']">Content is required.</div>
+        <div *ngIf="content?.errors?.['minlength']">Content must be at least 10 characters long.</div>
+      </div>
+    </div>
+
+    <!-- Image Upload -->
+    <div class="form-group">
+      <label for="image">Image</label>
+      <input
+        type="file"
+        id="image"
+        class="form-control-file"
+        (change)="onImageSelected($event)"
+        accept="image/*"
+        [required]="!isEditMode"
+      >
+      <!-- Image Preview or Existing Image -->
+      <div *ngIf="imagePreview" class="mt-2">
+        <img [src]="imagePreview" alt="Image Preview" class="img-thumbnail" style="max-width: 200px;">
+      </div>
+      <div *ngIf="isEditMode && !imagePreview && blogForm.get('imagepath')?.value" class="mt-2">
+        <img [src]="getImageUrl(blogForm.get('imagepath')?.value)" alt="Current Image" class="img-thumbnail" style="max-width: 200px;">
+      </div>
+      <div *ngIf="image?.invalid && (image?.dirty || image?.touched)" class="invalid-feedback">
+        <div *ngIf="image?.errors?.['required']">Image is required.</div>
+      </div>
+    </div>
+
+    <!-- Submit Button -->
+    <button type="submit" class="btn btn-primary" [disabled]="blogForm.invalid"> {{ isEditMode ? 'Update Blog' : 'Add Blog' }}</button>
+  </form>
+</div>
+<br><br><br><br><br><br><br><br><br>
+
+<app-footer></app-footer>

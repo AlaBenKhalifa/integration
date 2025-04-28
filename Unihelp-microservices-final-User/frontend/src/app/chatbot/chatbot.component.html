@@ -1,0 +1,74 @@
+<div class="chatbot-window flex flex-col h-full">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-t-lg flex justify-between items-center shadow-md">
+    <h3 class="text-lg font-semibold">Course Chatbot</h3>
+    <button (click)="close()" class="text-white hover:text-gray-200 focus:outline-none">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Chat Body -->
+  <div class="flex-1 p-4 overflow-y-auto bg-gray-50">
+    <!-- Loading Course Details -->
+    <div *ngIf="loading && !course" class="text-center animate-pulse">
+      <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-gray-600 mt-2">Loading course details...</p>
+    </div>
+
+    <!-- Chat History -->
+    <div *ngFor="let message of chatHistory" class="mb-4">
+      <!-- User's Question -->
+      <div class="flex justify-end">
+        <div class="bg-indigo-100 text-indigo-900 rounded-lg p-3 max-w-xs break-words">
+          <p>{{ message.question }}</p>
+        </div>
+      </div>
+      <!-- Bot's Answer -->
+      <div class="flex justify-start mt-2">
+        <div class="bg-gray-200 text-gray-900 rounded-lg p-3 max-w-xs break-words">
+          <p>{{ message.answer }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error" class="text-red-600 text-center mb-2 animate-fade-in">
+      <p>{{ error }}</p>
+    </div>
+
+    <!-- Loading Indicator for Question -->
+    <div *ngIf="loading && course" class="text-center animate-pulse">
+      <svg class="animate-spin h-6 w-6 text-indigo-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-gray-600 mt-2">Processing...</p>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="border-t border-gray-200 p-4 bg-white rounded-b-lg">
+    <textarea
+      [(ngModel)]="question"
+      placeholder="Ask a question about the course..."
+      rows="2"
+      class="w-full p-2 border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-indigo-600"
+      [disabled]="loading"
+    ></textarea>
+    <div class="flex justify-between mt-2">
+      <button (click)="askQuestion()" [disabled]="loading"
+              class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200">
+        {{ loading ? 'Processing...' : 'Send' }}
+      </button>
+      <button (click)="clear()" [disabled]="loading"
+              class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors duration-200">
+        Clear
+      </button>
+    </div>
+  </div>
+</div>

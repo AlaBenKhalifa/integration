@@ -1,0 +1,64 @@
+<!-- Notifications Component -->
+<div class="notifications-container">
+  <div class="notifications-header">
+    <h2>Notifications</h2>
+    <button *ngIf="notifications.length > 0" class="mark-all-read-btn" (click)="markAllAsRead()">
+      Mark all as read
+    </button>
+  </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading notifications...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!isLoading && notifications.length === 0" class="empty-state">
+    <i class="fas fa-bell-slash empty-icon"></i>
+    <h3>No notifications</h3>
+    <p>You're all caught up! Check back later for updates.</p>
+  </div>
+
+  <!-- Notifications list -->
+  <div *ngIf="!isLoading && notifications.length > 0" class="notifications-list">
+    <div 
+      *ngFor="let notification of notifications" 
+      class="notification-item" 
+      [class.unread]="!notification.read"
+      (click)="handleNotificationClick(notification)"
+    >
+      <!-- Notification icon based on type -->
+      <div class="notification-icon" [ngClass]="notification.type.toLowerCase()">
+        <i *ngIf="notification.type === 'FRIEND_REQUEST'" class="fas fa-user-plus"></i>
+        <i *ngIf="notification.type === 'FRIEND_ACCEPTED'" class="fas fa-user-check"></i>
+        <i *ngIf="notification.type === 'MESSAGE'" class="fas fa-comment"></i>
+        <i *ngIf="notification.type === 'SYSTEM'" class="fas fa-info-circle"></i>
+      </div>
+
+      <!-- Notification content -->
+      <div class="notification-content">
+        <p>{{notification.content}}</p>
+        <span class="notification-time">{{formatDate(notification.createdAt)}}</span>
+      </div>
+
+      <!-- Delete button -->
+      <button class="delete-btn" (click)="deleteNotification(notification, $event)">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Load more button -->
+    <div *ngIf="hasMoreNotifications && !loadingMore" class="load-more">
+      <button (click)="loadMoreNotifications()">
+        Load more notifications
+      </button>
+    </div>
+
+    <!-- Loading more indicator -->
+    <div *ngIf="loadingMore" class="loading-more">
+      <div class="spinner-small"></div>
+      <span>Loading more notifications...</span>
+    </div>
+  </div>
+</div>

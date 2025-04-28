@@ -1,0 +1,70 @@
+<header id="header">
+  <div class="header-top">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6 col-sm-6 col-8 header-top-left no-padding">
+          <ul>
+            <li><a href="https://www.facebook.com/profile.php?id=61573905641153"><i class="fa fa-facebook"></i></a></li>
+            <li><a href="#"><i class="fa fa-instagram"></i></a></li>
+            <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+          </ul>
+        </div>
+        <div class="col-lg-6 col-sm-6 col-4 header-top-right no-padding">
+          <a href="tel:+21652633414"><span class="lnr lnr-phone-handset"></span> <span class="text">+216 52 633 414</span></a>
+          <a href="mailto:contact@unihelp.com"><span class="lnr lnr-envelope"></span> <span class="text">contact@unihelp.com</span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container main-menu">
+    <div class="row align-items-center justify-content-between d-flex">
+      <div id="logo">
+        <a routerLink="/"><img src="assets/img/Frame 19.png" alt="UniHelp Logo" title="UniHelp" /></a>
+      </div>
+      <nav id="nav-menu-container">
+        <ul class="nav-menu">
+          <li><a routerLink="/" routerLinkActive="active">HOME</a></li>
+          <li><a routerLink="/about" routerLinkActive="active">ABOUT</a></li>
+          <li><a routerLink="/members" routerLinkActive="active">MEMBERS</a></li>
+          <li><a routerLink="/friends" routerLinkActive="active">FRIENDS</a></li>
+          <li><a routerLink="/groups" routerLinkActive="active">GROUPS</a></li>
+          <li><a routerLink="/job-posts" routerLinkActive="active">JOBS</a></li>
+          <li><a routerLink="/blogs" routerLinkActive="active">BLOGS</a></li>
+          <li class="menu-has-children relative">
+            <a href="#" class="hover:text-indigo-300">Events</a>
+            <ul class="absolute bg-white text-indigo-900 shadow-lg rounded-lg mt-2 hidden group-hover:block">
+              <li><a routerLink="/events" class="block px-4 py-2 hover:bg-indigo-100">All Events</a></li>
+              <li><a href="event-details.html">Event Details</a></li>
+              <li><a href="/tickets">My Tickets</a></li>
+            </ul>
+          </li>
+          <li class="menu-has-children relative">
+            <a href="#" class="hover:text-indigo-300">Courses</a>
+            <ul class="absolute bg-white text-indigo-900 shadow-lg rounded-lg mt-2 hidden group-hover:block">
+              <li><a routerLink="/courses" class="block px-4 py-2 hover:bg-indigo-100">All Courses</a></li>
+              <li><a routerLink="/course-details" class="block px-4 py-2 hover:bg-indigo-100">Course Details</a></li>
+              <li><a routerLink="/my-courses" class="block px-4 py-2 hover:bg-indigo-100">My Courses</a></li>
+              <li> <a routerLink="/quiz" class="btn bg-green-500 text-white">Quiz Generator</a></li>
+            </ul>
+          </li>
+          <li><a routerLink="/leaderboard" routerLinkActive="active">LEADERBOARD</a></li>
+          <li *ngIf="!isLoggedIn" class="login-signup">
+            <a routerLink="/login" class="btn btn-outline-primary">Login</a>
+          </li>
+          <li *ngIf="!isLoggedIn" class="login-signup">
+            <a routerLink="/signup" class="btn btn-primary">Sign Up</a>
+          </li>
+          <li *ngIf="isLoggedIn" class="menu-has-children">
+            <a href="#" (click)="$event.preventDefault(); toggleOptions()">
+              <i class="fa fa-user"></i> <i class="fa fa-caret-down"></i>
+            </a>
+            <ul *ngIf="showOptions">
+              <li><a routerLink="/profile">Profile</a></li>
+              <li><a (click)="toggleLoginState()">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</header>

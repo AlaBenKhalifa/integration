@@ -1,0 +1,44 @@
+.device-id {
+  font-family: monospace;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+.avatar-initials {
+  width: 36px;
+  height: 36px;
+  background-color: #3c4b64;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+table th {
+  font-weight: 600;
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-weight: normal;
+  
+  i {
+    font-size: 14px;
+  }
+}
+
+// Modal styles
+.table-sm {
+  font-size: 0.9rem;
+  
+  th {
+    width: 150px;
+  }
+}

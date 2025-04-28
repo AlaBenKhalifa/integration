@@ -1,0 +1,274 @@
+services:
+  discovery:
+    build: ./discovery
+    container_name: discovery-service
+    ports:
+      - '8761:8761'
+    expose:
+      - '8761'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      retries: 4
+      start_period: 190s      # Time to wait before performing the first health check
+      timeout: 80s
+
+  config-server:
+    build: ./config-server
+    container_name: config-service
+    ports:
+      - '9999:9999'
+    expose:
+      - '9999'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery:8761/eureka
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9999/actuator/health"]
+      interval: 10s
+      retries: 4
+      start_period: 300s      # Time to wait before performing the first health check
+      timeout: 300s
+    depends_on:
+      discovery:
+        condition: service_healthy
+#zeineb chnage
+  mysql-user:
+    image: mysql:8.0
+    container_name: mysql-db-user
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: user
+    ports:
+      - "3304:3306"
+    volumes:
+      - mysql_data_user:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  user:
+    build: ./user
+    container_name: user-service
+    ports:
+      - '8073:8073'
+    environment:
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-server:9999
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db-user:3306/user?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8073/actuator/health"]
+      interval: 10s
+      retries: 4
+      start_period: 600s      # Time to wait before performing the first health check
+      timeout: 300s           # Time to wait for the health check to respond
+    depends_on:
+      config-server:
+        condition: service_healthy
+      mysql-user:
+        condition: service_healthy
+  mysql-cours:
+    image: mysql:8.0
+    container_name: mysql-db-cours
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cours
+    ports:
+      - "3309:3306"
+    volumes:
+      - mysql_data_cours:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  cours:
+    build: ./cours
+    container_name: cours-service
+    ports:
+      - '8090:8090'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-server:9999
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db-cours:3306/cours?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+      - STRIPE_SECRET_KEY=sk_test_51REryU4gOpgPD2XULDE72sLpLMqZdAgFbmq8Gx1wg0KEYMuXv6mtQPPrdtg6KM1vdrXyAAlUPtNEpxXGxMqa6PnO0009Dsq8u6
+      - OPENROUTER_API_KEY=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
+      - OPENAI_API_KEY=AIzaSyAYHipNgN9msjaEMXvytQpd5h4BPXZ8wJU
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8090/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      discovery:
+        condition: service_healthy
+      user:
+        condition: service_healthy
+      mysql-cours:
+        condition: service_healthy
+
+    volumes:
+      - uploads_data:/src/main/resources/uploads
+
+
+
+  mysql-blog:
+    image: mysql:8.0
+    container_name: mysql-db-blog
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: blog
+    ports:
+      - "3312:3306"
+    volumes:
+      - mysql_data_blog:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  blog:
+    build: ./Blog
+    container_name: blog-service
+    ports:
+      - '8046:8046'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-server:9999
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db-blog:3306/blog?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=12345
+    volumes:
+      - blog:/app
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8046/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      discovery:
+        condition: service_healthy
+      user:
+        condition: service_healthy
+      mysql-blog:
+        condition: service_healthy
+
+  mysql-events:
+    image: mysql:8.0
+    container_name: mysql-db-event
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: events
+    ports:
+      - "3310:3306"
+    volumes:
+      - mysql_data_event:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      interval: 10s
+      retries: 10
+
+  events:
+    build: ./event
+    container_name: events-service
+    ports:
+      - '8095:8095'
+    expose:
+      - '8095'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-server:9999
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql-db-event:3306/events?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8095/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      discovery:
+        condition: service_healthy
+      user:
+        condition: service_healthy
+      mysql-events:
+        condition: service_healthy
+
+
+  gateway:
+    build: ./gateway
+    container_name: gateway-service
+    ports:
+      - '8888:8888'
+    expose:
+      - '8888'
+    depends_on:
+      discovery:
+        condition: service_healthy
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-server:9999
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: jenkins
+    ports:
+      - "8080:8080"   # Jenkins Web UI
+      - "50000:50000" # Agent communication
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Mount Docker socket
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - JENKINS_ADMIN_ID=admin
+      - JENKINS_ADMIN_PASSWORD=123
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/login" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      discovery:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+
+
+
+
+  frontend:
+    build: ./frontend
+
+    container_name: frontend
+    ports:
+      - "81:80"
+    volumes:
+      - ./frontend:/usr/src/app
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    expose:
+      - "81"
+
+
+  backend:
+    build: ./BackOffice-UniHelp
+    container_name: backend
+    ports:
+      - '84:80'
+    expose:
+      - '84'
+
+
+volumes:
+  mysql_data_user:
+  mysql_data_cours:
+  mysql_data_events:
+  mysql_data_blog:
+  blog:
+  mysql_data_event:
+  uploads_data:
+  jenkins_data:

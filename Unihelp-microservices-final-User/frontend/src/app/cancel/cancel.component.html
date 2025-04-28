@@ -1,0 +1,38 @@
+<div class="flex flex-col min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100">
+  <!-- Main Content -->
+  <main class="flex-grow flex justify-center items-center px-4 py-12">
+    <div class="bg-white bg-opacity-80 backdrop-blur-md rounded-xl shadow-2xl p-8 max-w-md w-full text-center transform transition-all duration-500 hover:shadow-3xl">
+      <!-- Icon for emphasis -->
+      <svg class="w-16 h-16 mx-auto mb-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+      <h2 class="text-3xl font-extrabold text-gray-800 mb-4 animate-fade-in">Payment Cancelled</h2>
+      <p class="text-gray-600 mb-6 animate-fade-in delay-100">Your payment was cancelled. Don't worry, you can try again!</p>
+      <a routerLink="/courses" class="inline-block bg-indigo-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg animate-pulse-once">
+        Back to Courses
+      </a>
+    </div>
+  </main>
+</div>
+<!-- yes changes pushed -->
+<!-- Custom Tailwind Animations -->
+<style>
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse-once {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+  .delay-100 {
+    animation-delay: 100ms;
+  }
+  .animate-pulse-once {
+    animation: pulse-once 1.5s ease-in-out;
+  }
+</style>

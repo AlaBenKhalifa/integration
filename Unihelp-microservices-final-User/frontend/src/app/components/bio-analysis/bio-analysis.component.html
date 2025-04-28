@@ -1,0 +1,152 @@
+<div class="bio-analysis-container">
+  <!-- Bio Input Form -->
+  <div class="bio-input-section card mb-4 p-3" *ngIf="!userId">
+    <h3>Bio Analysis Tool</h3>
+    <p class="text-muted">Enter a bio text to analyze skills, interests, and personality traits.</p>
+    
+    <form [formGroup]="analysisForm" (ngSubmit)="analyzeText()">
+      <div class="form-group mb-3">
+        <label for="bioText">Bio Text</label>
+        <textarea 
+          id="bioText" 
+          class="form-control" 
+          rows="5" 
+          formControlName="bioText"
+          placeholder="Enter a bio to analyze..."
+        ></textarea>
+        <div *ngIf="analysisForm.get('bioText')?.invalid && analysisForm.get('bioText')?.touched" class="text-danger">
+          Bio text must be at least 10 characters.
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between">
+        <button 
+          type="submit" 
+          class="btn btn-primary" 
+          [disabled]="analysisForm.invalid || isLoading"
+        >
+          <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Analyze
+        </button>
+
+        <button 
+          type="button" 
+          class="btn" 
+          [ngClass]="isRealtime ? 'btn-danger' : 'btn-outline-secondary'" 
+          (click)="toggleRealtime()"
+        >
+          {{ isRealtime ? 'Disable' : 'Enable' }} Realtime Analysis
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- If it's a user profile analysis -->
+  <div class="user-analysis-section card mb-4" *ngIf="userId">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0"><i class="bi bi-magic me-2"></i>Your Bio Analysis</h4>
+    </div>
+    <div class="card-body">
+      <div *ngIf="!isLoading && !analysisResult" class="text-center py-4">
+        <i class="bi bi-braces-asterisk" style="font-size: 3rem; color: #673ab7;"></i>
+        <p class="mt-3 text-muted">
+          We can analyze your bio to detect your skills, interests, and personality traits.
+        </p>
+        
+        <button 
+          class="modern-analyze-btn" 
+          (click)="analyzeUserBio()"
+        >
+          <i class="bi bi-magic me-2"></i>Analyze My Bio
+        </button>
+      </div>
+      
+      <div *ngIf="isLoading" class="text-center p-5">
+        <div class="spinner-border" style="color: #673ab7; width: 3rem; height: 3rem;" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-3" style="color: #673ab7; font-weight: 500;">Analyzing your bio...</p>
+        <p class="text-muted small">This might take a few seconds</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <!-- Analysis Results -->
+  <div *ngIf="analysisResult" class="analysis-results">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>Analysis Results</h4>
+      </div>
+      <div class="card-body">
+        <!-- Extracted Skills -->
+<div class="skills-section mb-4">
+  <h5><i class="bi bi-tools me-2"></i>Detected Skills</h5>
+  <div *ngIf="analysisResult.extractedSkills.length === 0" class="text-muted py-2">
+    <i class="bi bi-info-circle me-2"></i>No specific skills detected. Consider adding more details about your skills in your bio.
+  </div>
+  <div class="skills-badges" *ngIf="analysisResult.extractedSkills.length > 0">
+    <div *ngFor="let skill of analysisResult.extractedSkills; let i = index" 
+         class="skill-badge-container"
+         [ngClass]="{'new-item': i === analysisResult.extractedSkills.length-1 && addedItemAnimation}">
+      <span class="badge bg-success">{{ skill }}</span>
+      <button class="add-skill-btn" (click)="addSkillToProfile(skill)" title="Add to Profile">
+        <i class="fa fa-plus"></i>
+        <span class="fallback">+</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Extracted Interests -->
+<div class="interests-section mb-4">
+  <h5><i class="bi bi-heart-fill me-2"></i>Detected Interests</h5>
+  <div *ngIf="analysisResult.extractedInterests.length === 0" class="text-muted py-2">
+    <i class="bi bi-info-circle me-2"></i>No specific interests detected. Consider adding more details about your interests in your bio.
+  </div>
+  <div class="interests-badges" *ngIf="analysisResult.extractedInterests.length > 0">
+    <div *ngFor="let interest of analysisResult.extractedInterests; let i = index" 
+         class="interest-badge-container"
+         [ngClass]="{'new-item': i === analysisResult.extractedInterests.length-1 && addedItemAnimation}">
+      <span class="badge bg-info">{{ interest }}</span>
+      <button class="add-interest-btn" (click)="addInterestToProfile(interest)" title="Add to Profile">
+        <i class="fa fa-plus"></i>
+        <span class="fallback">+</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Personality Traits -->
+<div class="personality-section mb-4" *ngIf="analysisResult.personalityTraits">
+  <h5><i class="bi bi-person-fill me-2"></i>Personality Traits</h5>
+  
+  <!-- Dominant trait callout -->
+  <div *ngIf="analysisResult.dominantTrait" class="dominant-trait mb-3">
+    <strong>Dominant trait:</strong> {{ analysisResult.dominantTrait }}
+  </div>
+  
+  <div class="trait-list">
+    <div *ngFor="let trait of getPersonalityTraitsArray()" class="trait-item">
+      <div class="trait-label">
+        <span>{{ trait.name }}</span>
+        <span class="badge bg-primary">{{ (trait.score * 100).toFixed(0) }}%</span>
+      </div>
+      <div class="progress">
+        <div 
+          class="progress-bar" 
+          [ngClass]="trait.dominant ? 'bg-primary' : 'bg-info'"
+          [style.width.%]="trait.score * 100">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+

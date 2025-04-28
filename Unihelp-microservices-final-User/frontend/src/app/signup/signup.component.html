@@ -1,0 +1,244 @@
+<app-header></app-header>
+<div class="signup-container">
+  <div class="form-section">
+    <div class="form-header">
+      <span class="dot"></span>
+      <h1>Create an Account</h1>
+    </div>
+    <p class="subheading">Join our community and start your journey with us.</p>
+
+    <div class="step-indicator">
+      <div class="step" [ngClass]="{ active: currentStep === 1, completed: currentStep > 1 }">1</div>
+      <div class="step" [ngClass]="{ active: currentStep === 2, completed: currentStep > 2 }">2</div>
+      <div class="step" [ngClass]="{ active: currentStep === 3 }">3</div>
+    </div>
+
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="signup-form">
+      <!-- Step 1: Basic Info -->
+      <div *ngIf="currentStep === 1">
+        <div class="form-group">
+          <label for="firstName">FIRST NAME</label>
+          <input
+            type="text"
+            id="firstName"
+            formControlName="firstName"
+            placeholder="Enter your first name"
+            class="form-control"
+            required
+          />
+          <small
+            *ngIf="
+              signupForm.get('firstName')?.invalid &&
+              signupForm.get('firstName')?.touched
+            "
+            class="error-text"
+          >
+            First name must be at least 2 characters
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="lastName">LAST NAME</label>
+          <input
+            type="text"
+            id="lastName"
+            formControlName="lastName"
+            placeholder="Enter your last name"
+            class="form-control"
+            required
+          />
+          <small
+            *ngIf="
+              signupForm.get('lastName')?.invalid && signupForm.get('lastName')?.touched
+            "
+            class="error-text"
+          >
+            Last name must be at least 2 characters
+          </small>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="nextStep()">Next</button>
+      </div>
+
+      <!-- Step 2: Account Info -->
+      <div *ngIf="currentStep === 2">
+        <div class="form-group">
+          <label for="email">EMAIL</label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            class="form-control"
+            required
+          />
+          <small
+            *ngIf="
+              signupForm.get('email')?.invalid && signupForm.get('email')?.touched
+            "
+            class="error-text"
+          >
+            Invalid email format
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">PASSWORD</label>
+          <div class="password-wrapper">
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              formControlName="password"
+              placeholder="Enter your password"
+              class="form-control"
+              required
+            />
+            <i
+              class="eye-icon"
+              [ngClass]="showPassword ? 'fa fa-eye-slash' : 'fa fa-eye'"
+              (click)="togglePasswordVisibility()"
+            ></i>
+          </div>
+          <small
+            *ngIf="
+              signupForm.get('password')?.invalid && signupForm.get('password')?.touched
+            "
+            class="error-text"
+          >
+            Password must be at least 8 characters
+          </small>
+        </div>
+
+        <button type="button" class="btn-primary" (click)="nextStep()">Next</button>
+      </div>
+
+      <!-- Step 3: Additional Info -->
+      <div *ngIf="currentStep === 3">
+        <div class="form-group">
+          <label for="bio">BIO</label>
+          <textarea
+            id="bio"
+            formControlName="bio"
+            placeholder="Tell us about yourself"
+            class="form-control"
+            rows="4"
+          ></textarea>
+          <small
+            *ngIf="
+              signupForm.get('bio')?.invalid && signupForm.get('bio')?.touched
+            "
+            class="error-text"
+          >
+            Bio must be at least 10 characters
+          </small>
+        </div>
+
+        <div class="form-group">
+          <mat-form-field appearance="outline">
+            <mat-label>SKILLS</mat-label>
+            <mat-chip-grid #chipGrid aria-label="Skills selection">
+              <mat-chip-row
+                *ngFor="let skill of signupForm.get('skillsList')?.value"
+                [removable]="true"
+                (removed)="removeSkill(skill)"
+              >
+                {{ skill }}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip-row>
+              <input
+                placeholder="Add a skill..."
+                [matChipInputFor]="chipGrid"
+                [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+                (matChipInputTokenEnd)="addSkill($event)"
+              />
+            </mat-chip-grid>
+            <mat-error
+              *ngIf="
+                signupForm.get('skillsList')?.invalid && signupForm.get('skillsList')?.touched
+              "
+            >
+              Please add at least one skill
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <div class="form-group">
+          <label for="role">ROLE</label>
+          <select
+            id="role"
+            formControlName="role"
+            class="form-control"
+          >
+            <option value="" disabled selected>Select your role</option>
+            <option value="STUDENT">Student</option>
+            <option value="MENTOR">Mentor</option>
+          </select>
+          <small
+            *ngIf="
+              signupForm.get('role')?.invalid && signupForm.get('role')?.touched
+            "
+            class="error-text"
+          >
+            Please select a role
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="profileImage">PROFILE IMAGE</label>
+          <input
+            type="file"
+            id="profileImage"
+            (change)="onFileChange($event)"
+            class="form-control"
+            accept="image/jpeg,image/png"
+          />
+          <small
+            *ngIf="
+              signupForm.get('profileImage')?.invalid && signupForm.get('profileImage')?.touched
+            "
+            class="error-text"
+          >
+            Please upload a valid image (JPEG or PNG, max 5MB)
+          </small>
+        </div>
+
+        <button type="submit" class="btn-primary" [ngClass]="{ loading: isLoading }" [disabled]="signupForm.invalid || isLoading">
+          {{ isLoading ? 'Signing Up...' : 'Sign Up' }}
+        </button>
+      </div>
+    </form>
+    
+    <div class="social-login">
+      <p>Or Continue With</p>
+      <div class="social-buttons">
+        <!-- FedCM Google Sign-in Button Container -->
+        <div id="google-signup-button" class="google-button-container"></div>
+        <!-- Removed Facebook button as it's not implemented yet -->
+      </div>
+      <div class="google-info">
+        <p><i class="fa fa-info-circle"></i> Skip the form and get started instantly with Google!</p>
+      </div>
+    </div>
+
+    <p class="signup-link text-center mt-3">
+      Already have an account? <a (click)="goToLogin()" class="login-link">Log in</a>
+    </p>
+  </div>
+
+  <!-- Right Section (Photo Slider) -->
+  <div class="photo-section">
+    <div class="photo-slider">
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+      <img src="assets/img/students3.jpg" alt="Group project" />
+      <img src="assets/img/students4.jpg" alt="Graduation" />
+      <!-- Duplicate images for seamless looping -->
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+    </div>
+    <div class="photo-overlay">
+      <h2>Join Our Community</h2>
+      <p>Connect with students and mentors to enhance your learning experience</p>
+    </div>
+  </div>
+</div>

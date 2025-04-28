@@ -1,0 +1,121 @@
+<!-- header.component.html -->
+<header class="header">
+  <nav class="container mx-auto px-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold">Blog App</h1>
+    <ul class="flex space-x-4">
+      <li><a href="/home">Home</a></li>
+      <li><a href="/blogs">Blogs</a></li>
+      <li><a href="/profile">Profile</a></li>
+    </ul>
+  </nav>
+</header>
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+
+<div id="main-content" class="blog-page">
+  <div class="container">
+    <div class="row clearfix">
+      <!-- Main Content -->
+      <div class="col-lg-8 col-md-12 left-box">
+        <!-- Blog Post -->
+        <div class="card single_post">
+          <div class="body">
+            <div class="img-post">
+              <img *ngIf="blog && blog.imagepath; else placeholder" class="d-block img-fluid" [src]="getImageUrl(blog.imagepath)" [alt]="blog.title">
+              <ng-template #placeholder>
+                <img class="d-block img-fluid" src="https://www.bootdey.com/image/800x280/87CEFA/000000" alt="Placeholder">
+              </ng-template>
+            </div>
+            <h3 class="p-3"><a [routerLink]="['/blog', blog?.idBlog]">{{ blog?.title }}</a></h3>
+          </div>
+        </div>
+        <p class="paragraph">{{ blog?.content }}</p>
+        <!-- Download PDF Button -->
+        <div class="mb-4">
+          <button (click)="downloadAsPDF()" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition duration-300 ease-in-out">
+            <i class="fa fa-download mr-2"></i> Download Blog as PDF
+          </button>
+        </div>
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="alert alert-danger">
+          {{ errorMessage }}
+        </div>
+        <div class="card">
+          <div class="header">
+            <h2>{{ isEditing ? 'Edit Comment' : 'Leave a reply' }} <small>Your email address will not be published. Required fields are marked*</small></h2>
+          </div>
+          <div class="body">
+            <div class="comment-form">
+              <form class="row clearfix" #commentForm="ngForm" (ngSubmit)="submitComment(commentForm)">
+                <div class="col-sm-12">
+                  <div class="form-group">
+                    <textarea rows="4" class="form-control no-resize" placeholder="Please type what you want..." name="content" ngModel required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-block btn-primary" [disabled]="commentForm.invalid">{{ isEditing ? 'Update' : 'Submit' }}</button>
+                  <button type="button" class="btn btn-block btn-secondary" *ngIf="isEditing" (click)="resetForm(commentForm)">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- Comments Section -->
+        <div class="card">
+          <div class="header">
+            <h2>Comments ({{ blog?.comments?.length }})</h2>
+          </div>
+          <div class="body">
+            <ul class="comment-reply list-unstyled">
+              <li class="row clearfix" *ngFor="let comment of comments">
+                <div class="icon-box col-md-2 col-4">
+                  <img
+                    class="img-fluid img-thumbnail"
+                    [src]="comment.user?.profileImage || 'https://bootdey.com/img/Content/avatar/avatar7.png'"
+                    [alt]="comment.user?.firstName || 'Avatar'">
+                </div>
+                <div class="text-box col-md-10 col-8 p-l-0 p-r0">
+                  <h5 class="m-b-0">{{ comment.user?.firstName}} {{ comment.user?.lastName || '' }}</h5>
+                  <p class="com">{{ comment.content }}</p>
+                  <ul class="list-inline">
+                    <li *ngIf="isCommentEditable(comment)">
+                      <a href="javascript:void(0);" (click)="editComment(comment)">Edit</a>
+                    </li>
+                    <li *ngIf="isCommentEditable(comment)">
+                      <a href="javascript:void(0);" (click)="deleteComment(comment.idComment!)">Delete</a>
+                    </li>
+                  </ul>
+                </div>
+              </li>
+              <li *ngIf="comments.length === 0" class="text-center">
+                No comments yet.
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="col-lg-4 col-md-12 right-box">
+        <h2>Popular Blogs</h2>
+        <br>
+        <!-- Popular Posts -->
+        <div class="card" *ngFor="let b of latestBlogs">
+          <div class="header">
+          </div>
+          <div class="body widget popular-post">
+            <div class="row">
+              <div class="col-lg-12">
+                <div class="single_post p-3">
+                  <p class="m-b-0">{{ b.title }}</p>
+                  <span>{{ b.content | slice:0:5 }} ...</span>
+                  <div class="img-post">
+                    <img [src]="getImageUrl(b.imagepath)" alt="Popular Post Image">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+server:
+  port: 8095
+spring:
+  application:
+    name: events
+  config:
+    import: optional:configserver:${CONFIG_SERVICE_URL:http://localhost:9999}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: mounirkhalifa69@gmail.com
+    password: phnd cpfr zkzr tvit
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

@@ -1,0 +1,134 @@
+<div class="page-wrapper">
+  <div class="container">
+    <div class="view-toggle">
+      <button mat-raised-button color="primary" (click)="toggleView()">
+        {{ viewMode === 'list' ? 'Calendar View' : 'List View' }}
+      </button>
+    </div>
+
+    <div *ngIf="viewMode === 'calendar'" class="calendar-container">
+      <full-calendar [options]="calendarOptions"></full-calendar>
+    </div>
+
+    <div *ngIf="viewMode === 'list'">
+      <div class="booked-events-section" *ngIf="(isStudent$ | async) && userTickets.length > 0">
+        <h2 class="section-title">My Registered Events</h2>
+        <div class="event-grid">
+          <mat-card *ngFor="let ticket of userTickets" class="event-card" @fadeIn>
+            <ng-container *ngIf="ticket.event as event">
+              <div class="card-header">
+                <div class="title-section">
+                  <h3 class="event-title">{{ event.titre }}</h3>
+                  <span class="event-date">{{ event.date | date: 'MMM d, yyyy' }}</span>
+                </div>
+                <button
+                  mat-icon-button
+                  class="qr-button"
+                  (click)="toggleQrCode(event.eventId)"
+                  [color]="showQrCode[event.eventId] ? 'primary' : undefined"
+                  matTooltip="{{ showQrCode[event.eventId] ? 'Hide Ticket' : 'Show Ticket' }}"
+                >
+                  <mat-icon>{{ showQrCode[event.eventId] ? 'qr_code_scanner' : 'qr_code' }}</mat-icon>
+                </button>
+              </div>
+              <mat-card-content>
+                <p class="event-description" [ngClass]="{'expanded': expandedEvents[event.eventId]}">
+                  {{ event.description }}
+                </p>
+                <span
+                  *ngIf="descriptionExceedsLimit(event.description)"
+                  class="toggle-details"
+                  (click)="toggleEventDetails(event.eventId)"
+                >
+                  {{ expandedEvents[event.eventId] ? 'Show less' : 'Read more' }}
+                </span>
+                <div class="event-details">
+                  <div class="detail-item">
+                    <mat-icon class="detail-icon">event</mat-icon>
+                    <span>{{ event.date | date: 'EEEE, MMMM d, yyyy' }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <mat-icon class="detail-icon">location_on</mat-icon>
+                    <span>{{ event.lieu }}</span>
+                  </div>
+                </div>
+                <div *ngIf="showQrCode[event.eventId]" class="qr-code-container" @fadeIn>
+                  <img [src]="qrCodes[event.eventId] || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'" alt="QR Code" *ngIf="qrCodes[event.eventId]; else loadingQrCode" />
+                  <ng-template #loadingQrCode>
+                    <div class="loading-spinner">
+                      <mat-spinner diameter="40"></mat-spinner>
+                      <p class="loading-text">Generating...</p>
+                    </div>
+                  </ng-template>
+                </div>
+              </mat-card-content>
+              <mat-card-actions class="action-buttons">
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  (click)="cancelBooking(event.eventId)"
+                  class="action-button cancel-button"
+                >
+                  <mat-icon>cancel</mat-icon>
+                  Cancel
+                </button>
+              </mat-card-actions>
+            </ng-container>
+          </mat-card>
+        </div>
+      </div>
+
+      <h2 class="section-title">Upcoming Events</h2>
+      <div class="event-grid">
+        <mat-card *ngFor="let event of filteredEvents" class="event-card" @fadeIn>
+          <div class="card-header">
+            <div class="title-section">
+              <h3 class="event-title">{{ event.titre }}</h3>
+              <span class="event-date">{{ event.date | date: 'MMM d, yyyy' }}</span>
+            </div>
+          </div>
+          <mat-card-content>
+            <p class="event-description" [ngClass]="{'expanded': expandedEvents[event.eventId]}">
+              {{ event.description }}
+            </p>
+            <span
+              *ngIf="descriptionExceedsLimit(event.description)"
+              class="toggle-details"
+              (click)="toggleEventDetails(event.eventId)"
+            >
+              {{ expandedEvents[event.eventId] ? 'Show less' : 'Read more' }}
+            </span>
+            <div class="event-details">
+              <div class="detail-item">
+                <mat-icon class="detail-icon">event</mat-icon>
+                <span>{{ event.date | date: 'EEEE, MMMM d, yyyy' }}</span>
+              </div>
+              <div class="detail-item">
+                <mat-icon class="detail-icon">location_on</mat-icon>
+                <span>{{ event.lieu }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+          <mat-card-actions class="action-buttons">
+            <ng-container *ngIf="(isStudent$ | async)">
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="bookTicket(event.eventId)"
+                [disabled]="event.eventId === undefined"
+                class="action-button register-button"
+              >
+                <mat-icon>calendar_today</mat-icon>
+                Register
+              </button>
+            </ng-container>
+          </mat-card-actions>
+        </mat-card>
+        <div *ngIf="filteredEvents.length === 0" class="empty-state">
+          <mat-icon class="empty-icon">event_busy</mat-icon>
+          <p>No upcoming events available.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

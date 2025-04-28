@@ -1,0 +1,25 @@
+server:
+  port: 8046
+spring:
+  application:
+    name: blog
+    mail:
+      host: smtp.gmail.com
+      port: 587
+      username: alaeddine.benkhalifa@ieee.org
+      password: iskg scqk shgd jyzd
+      properties:
+        mail:
+          debug: true
+          smtp:
+            auth: true
+            starttls:
+              enable: true
+  config:
+    import: optional:configserver:${CONFIG_SERVICE_URL:http://localhost:9999}
+  web:
+    resources:
+      static-locations: classpath:/static/,file:uploads/
+
+
+

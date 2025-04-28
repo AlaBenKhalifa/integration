@@ -1,0 +1,433 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url('/assets/img/banner-bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  font-family: 'Arial', sans-serif;
+  padding-top: 80px;
+  position: relative;
+  margin-top: 0;
+  overflow: hidden;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.login-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(34, 37, 51, 0.8); /* Dark blue overlay */
+  z-index: 0;
+}
+
+.form-section {
+  flex: 0 0 500px; /* Increased width */
+  background: transparent;
+  padding: 20px 50px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+  color: #FFFFFF; /* White text color */
+  max-width: 550px;
+  margin: 0 20px;
+  max-height: calc(100vh - 160px); /* Increased to avoid header overlap */
+  overflow-y: auto;
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.form-section::-webkit-scrollbar {
+  display: none;
+}
+
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+
+.form-header .dot {
+  width: 10px;
+  height: 10px;
+  background: #6C63FF; /* Purple dot */
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.form-header h1 {
+  font-size: 28px;
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.subheading {
+  font-size: 14px;
+  color: #CCCCCC;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.login-form {
+  max-width: 400px;
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 12px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #FFFFFF;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+.form-group input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  padding: 8px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+  background: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.form-group input:focus {
+  border-color: #6C63FF;
+  box-shadow: 0 0 5px rgba(108, 99, 255, 0.5);
+}
+
+.form-group small {
+  color: #e74c3c;
+  font-size: 12px;
+  display: block;
+  margin-top: 5px;
+}
+
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 30px;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #555;
+}
+
+.eye-icon:hover {
+  color: #fff;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
+.forgot-password a {
+  color: #6C63FF; /* Purple link */
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.forgot-password a:hover {
+  text-decoration: underline;
+}
+
+/* Error Message */
+.error-message {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Log In Button */
+.btn-primary, .genric-btn.primary {
+  width: 100%;
+  padding: 12px;
+  background: #6C63FF; /* Purple button */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.3s;
+  margin-top: 10px;
+}
+
+.btn-primary:disabled, .genric-btn.primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.btn-primary:hover, .genric-btn.primary:hover {
+  background: #5a52d5;
+}
+
+/* Social Login */
+.social-login {
+  text-align: center;
+  margin: 10px 0;
+  position: relative;
+}
+
+.social-login p {
+  font-size: 14px;
+  color: #FFFFFF;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.social-login p:before,
+.social-login p:after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 25%;
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.social-login p:before {
+  left: 0;
+}
+
+.social-login p:after {
+  right: 0;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* Google Button Container */
+.google-button-container {
+  min-width: 220px;
+  min-height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 220px;
+  margin: 0 auto;
+}
+
+.social-btn img {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px;
+}
+
+.social-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.social-btn.google {
+  color: #FFFFFF;
+  background-color: rgba(66, 133, 244, 0.2);
+  border-color: rgba(66, 133, 244, 0.5);
+}
+
+.social-btn.google:hover {
+  background-color: rgba(66, 133, 244, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.google-info {
+  margin-top: 15px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.google-info i {
+  color: #6C63FF;
+  margin-right: 5px;
+}
+
+/* Sign Up Link */
+.signup-link {
+  text-align: center;
+  font-size: 14px;
+  color: #FFFFFF;
+  margin-top: 20px;
+}
+
+.signup-link a {
+  color: #6C63FF; /* Purple link */
+  text-decoration: none;
+  font-weight: 500;
+  margin-left: 5px;
+}
+
+.signup-link a:hover {
+  text-decoration: underline;
+}
+
+/* Right Section (Photo) */
+.photo-section {
+  flex: 0 0 40%;
+  height: calc(100vh - 140px);
+  position: relative;
+  overflow: hidden;
+  margin: 20px 20px;
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.photo-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: slidePhotos 20s linear infinite;
+}
+
+/* Add gradient overlays for top and bottom fade effects */
+.photo-section::before,
+.photo-section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  z-index: 1; /* Decreased from 3 to 1 to ensure it's below modals */
+  pointer-events: none;
+}
+
+.photo-section::before {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(34, 37, 51, 0.8) 0%, rgba(34, 37, 51, 0) 100%);
+}
+
+.photo-section::after {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(34, 37, 51, 0.8) 0%, rgba(34, 37, 51, 0) 100%);
+}
+
+.photo-slider img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(108, 99, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+  color: white;
+  z-index: 1; /* Decreased from 2 to 1 to ensure it's below modals */
+}
+
+.photo-overlay h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.photo-overlay p {
+  font-size: 1.2rem;
+  max-width: 80%;
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes slidePhotos {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.genric-btn.primary.loading::before {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #fff;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Navbar */
+.navbar {
+  background-color: #04091E; /* Match the navbar color */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-container {
+    flex-direction: column;
+  }
+
+  .form-section {
+    flex: none;
+    width: 100%;
+  }
+}

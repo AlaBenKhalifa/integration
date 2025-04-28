@@ -1,0 +1,342 @@
+<div class="profile-background modern-bg">
+  <div class="profile-layout-container">
+    <!-- Left Column: Profile Card -->
+    <div class="modern-profile-card profile-column">
+      <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+      <div *ngIf="successMessage" class="alert alert-success">{{ successMessage }}</div>
+      <div *ngIf="!user" class="loading">Loading profile...</div>
+      <div *ngIf="user" class="profile-content">
+      <div class="modern-profile-header">
+        <div class="modern-profile-image">
+          <img [src]="getProfileImageUrl(user.profileImage)" alt="Profile Image" onerror="this.src='assets/img/default-user.png';" />
+          <span class="modern-status-dot" [class.active]="!user.banned" title="Account status"></span>
+        </div>
+        <div class="modern-profile-info">
+          <div class="modern-profile-main">
+            <h2 class="modern-user-name">{{ user.firstName }} {{ user.lastName }}</h2>
+            <span class="modern-role-tag" *ngIf="user.role === 'STUDENT'">Student</span>
+          </div>
+          <span class="modern-user-email">{{ user.email }}</span>
+          <span class="modern-user-id">ID: {{ user.id }}</span>
+        </div>
+      </div>
+      <div *ngIf="!isEditing" class="modern-profile-details">
+        <p class="modern-user-bio">{{ user.bio || 'No bio provided' }}</p>
+        <div class="modern-user-skills">
+          <ng-container *ngFor="let skill of (user.skills?.split(',') || [])">
+            <span class="modern-skill-tag">{{ skill }}</span>
+          </ng-container>
+        </div>
+        <div class="modern-action-buttons">
+          <button (click)="toggleEdit()" class="modern-edit-btn">Edit Profile</button>
+          <button (click)="toggleBioAnalysis()" class="modern-analyze-btn">
+            {{ showBioAnalysis ? 'Hide Analysis' : 'Analyze My Bio' }}
+          </button>
+        </div>
+        <div *ngIf="showBioAnalysis" class="bio-analysis-wrapper mt-4">
+          <h4 class="analysis-title">Bio Analysis</h4>
+          <div *ngIf="isAnalysisLoading" class="text-center p-3">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Analyzing your bio...</p>
+          </div>
+          <app-bio-analysis 
+            *ngIf="!isAnalysisLoading" 
+            [userId]="user.id" 
+            [bio]="user.bio || ''" 
+            (analysisComplete)="onAnalysisComplete($event)"
+            (addSkill)="addSkillToProfile($event)"
+            (addInterest)="addInterestToProfile($event)">
+          </app-bio-analysis>
+        </div>
+      </div>
+      <form *ngIf="isEditing" [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="profile-form">
+        <div class="form-group">
+          <label for="firstName">First Name</label>
+          <input id="firstName" formControlName="firstName" class="form-control" />
+          <div *ngIf="profileForm.get('firstName')?.invalid && profileForm.get('firstName')?.touched" class="text-danger">First name is required.</div>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Last Name</label>
+          <input id="lastName" formControlName="lastName" class="form-control" />
+          <div *ngIf="profileForm.get('lastName')?.invalid && profileForm.get('lastName')?.touched" class="text-danger">Last name is required.</div>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" formControlName="email" class="form-control" [disabled]="true" />
+        </div>
+        <div class="form-group">
+          <label for="bio">Bio</label>
+          <textarea id="bio" formControlName="bio" class="form-control"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="skills">Skills (comma-separated)</label>
+          <input id="skills" formControlName="skills" class="form-control" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" [disabled]="profileForm.invalid" class="save-btn">Save</button>
+          <button type="button" (click)="toggleEdit()" class="cancel-btn">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+    
+    <!-- Right Column: Feature Cards -->
+    <div class="feature-column" *ngIf="user">
+      <!-- Feature toggle buttons -->
+      <div class="feature-toggle-container">
+        <div class="feature-toggle-header">
+          <h2>Communication Hub</h2>
+          <p>Access all your communication features in one place</p>
+        </div>
+        <div class="feature-toggle-buttons">
+          <button class="feature-toggle-btn" [class.active]="activeFeature === 'messages'" (click)="toggleFeature('messages')">
+            <i class="fa fa-envelope-o"></i>
+            <span class="badge" *ngIf="unreadMessagesCount > 0">{{unreadMessagesCount}}</span>
+            <span class="btn-text">Messages</span>
+          </button>
+          
+          <button class="feature-toggle-btn" [class.active]="activeFeature === 'notifications'" (click)="toggleFeature('notifications')">
+            <i class="fa fa-bell-o"></i>
+            <span class="badge" *ngIf="unreadNotificationsCount > 0">{{unreadNotificationsCount}}</span>
+            <span class="btn-text">Notifications</span>
+          </button>
+          
+          <button class="feature-toggle-btn" [class.active]="activeFeature === 'friends'" (click)="toggleFeature('friends')">
+            <i class="fa fa-users"></i>
+            <span class="badge" *ngIf="pendingFriendRequestsCount > 0">{{pendingFriendRequestsCount}}</span>
+            <span class="btn-text">Friends</span>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Messages Content -->
+      <div class="feature-content-card" *ngIf="activeFeature === 'messages'">
+        <div class="feature-header">
+          <h2>Messages</h2>
+          <span class="badge-count" *ngIf="unreadMessagesCount > 0">{{unreadMessagesCount}} unread</span>
+        </div>
+        <div class="feature-body">
+          <!-- Loading indicator -->
+          <div *ngIf="isLoadingConversations" class="messages-loading">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading your conversations...</p>
+          </div>
+
+          <!-- Empty state for no conversations -->
+          <div *ngIf="conversations.length === 0 && !isLoadingConversations" class="empty-messages">
+            <i class="fa fa-comments-o"></i>
+            <h3>No Conversations</h3>
+            <p>Your message inbox is empty</p>
+          </div>
+
+          <!-- Conversation list -->
+          <div class="conversation-list" *ngIf="conversations.length > 0">
+            <div class="conversation-item" *ngFor="let conversation of conversations" (click)="openConversation(conversation.userId)">
+              <div class="conversation-avatar">
+                <img [src]="getProfileImageUrl(conversation.profileImage)" alt="{{ conversation.firstName }} {{ conversation.lastName }}" onerror="this.src='assets/img/default-user.png';">
+                <span class="user-status" [class.online]="conversation.online"></span>
+              </div>
+              <div class="conversation-content">
+                <h4 class="conversation-name">{{ conversation.firstName }} {{ conversation.lastName }}</h4>
+                <p class="conversation-message">{{ conversation.lastMessage }}</p>
+              </div>
+              <div class="conversation-meta">
+                <span class="conversation-time">{{ conversation.lastMessageTime | date:'shortTime' }}</span>
+                <span class="conversation-badge" *ngIf="conversation.unreadCount > 0">{{ conversation.unreadCount }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Notifications Content -->
+      <div class="feature-content-card" *ngIf="activeFeature === 'notifications'">
+        <div class="feature-header">
+          <h2>Notifications</h2>
+          <span class="badge-count" *ngIf="unreadNotificationsCount > 0">{{unreadNotificationsCount}} new</span>
+        </div>
+        <div class="feature-body">
+          <!-- Loading indicator -->
+          <div *ngIf="isLoadingNotifications" class="loading-indicator">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading notifications...</p>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="notifications.length === 0 && !isLoadingNotifications" class="empty-state-content">
+            <i class="fa fa-bell-o"></i>
+            <h3>No Notifications</h3>
+            <p>You don't have any notifications at the moment</p>
+          </div>
+
+          <!-- Notification list with real data -->
+          <div class="notification-list" *ngIf="notifications.length > 0">
+            <div class="notification-item" *ngFor="let notification of notifications" [class.unread]="!notification.read">
+              <div class="notification-icon" [ngClass]="notification.type">
+                <i class="fa" [ngClass]="{
+                  'fa-heart': notification.type === 'like',
+                  'fa-comment': notification.type === 'comment',
+                  'fa-user-plus': notification.type === 'friend',
+                  'fa-bell': notification.type === 'system',
+                  'fa-calendar': notification.type === 'event'
+                }"></i>
+              </div>
+              <div class="notification-content">
+                <p class="notification-text">{{ notification.message }}</p>
+                <span class="notification-time">{{ notification.timestamp | date:'short' }}</span>
+              </div>
+              <div class="notification-actions">
+                <button class="notification-btn mark-read" *ngIf="!notification.read" (click)="markNotificationAsRead(notification.id)" title="Mark as read">
+                  <i class="fa fa-check"></i>
+                </button>
+                <button class="notification-btn delete" (click)="deleteNotification(notification.id)" title="Delete notification">
+                  <i class="fa fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Friends Content -->
+      <div class="feature-content-card" *ngIf="activeFeature === 'friends'">
+        <div class="feature-header">
+          <h2>Friends</h2>
+          <span class="badge-count" *ngIf="pendingFriendRequestsCount > 0">{{pendingFriendRequestsCount}} requests</span>
+        </div>
+        <div class="feature-body">
+          <div class="friend-tabs">
+            <button class="friend-tab" [class.active]="activeFriendTab === 'friends'" (click)="activeFriendTab = 'friends'">My Friends</button>
+            <button class="friend-tab" [class.active]="activeFriendTab === 'requests'" (click)="activeFriendTab = 'requests'">Requests <span *ngIf="pendingFriendRequestsCount > 0">({{pendingFriendRequestsCount}})</span></button>
+            <button class="friend-tab" [class.active]="activeFriendTab === 'suggestions'" (click)="activeFriendTab = 'suggestions'">Suggestions</button>
+          </div>
+          
+          <!-- Friends List -->
+          <div class="friends-list" *ngIf="activeFriendTab === 'friends'">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingFriends" class="loading-indicator">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Loading your friends...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div *ngIf="friends.length === 0 && !isLoadingFriends" class="empty-state-content">
+              <i class="fa fa-users"></i>
+              <h3>No Friends Yet</h3>
+              <p>Check out the suggestions to find people to connect with</p>
+            </div>
+            
+            <!-- Friends list with real data -->
+            <div class="friend-item" *ngFor="let friend of friends">
+              <div class="friend-avatar">
+                <img [src]="getProfileImageUrl(friend.profileImage)" alt="{{ friend.firstName }} {{ friend.lastName }}" onerror="this.src='assets/img/default-user.png';">
+                <span class="friend-status-indicator" [class.online]="friend.online"></span>
+              </div>
+              <div class="friend-content">
+                <h4 class="friend-name">{{ friend.firstName }} {{ friend.lastName }}</h4>
+                <p class="friend-status">{{ friend.online ? 'Online' : 'Offline' }}</p>
+              </div>
+              <div class="friend-actions">
+                <button class="friend-action-btn" title="Message" (click)="openConversation(friend.id)">
+                  <i class="fa fa-envelope-o"></i>
+                </button>
+                <button class="friend-action-btn" title="Remove" (click)="removeFriend(friend.id)">
+                  <i class="fa fa-user-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Friend Requests Tab -->
+          <div class="friend-requests" *ngIf="activeFriendTab === 'requests'">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingRequests" class="loading-indicator">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Loading your friend requests...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div *ngIf="friendRequests.length === 0 && !isLoadingRequests" class="empty-state-content">
+              <i class="fa fa-user-plus"></i>
+              <h3>No Friend Requests</h3>
+              <p>You don't have any pending friend requests</p>
+            </div>
+            
+            <!-- Friend requests with real data -->
+            <div class="request-item" *ngFor="let request of friendRequests">
+              <div class="request-avatar">
+                <img [src]="getProfileImageUrl(request.profileImage)" alt="{{ request.firstName }} {{ request.lastName }}" onerror="this.src='assets/img/default-user.png';">
+              </div>
+              <div class="request-content">
+                <h4 class="request-name">{{ request.firstName }} {{ request.lastName }}</h4>
+                <p class="request-mutual">{{ request.mutualFriends || 0 }} mutual friends</p>
+              </div>
+              <div class="request-actions">
+                <button class="request-action-btn accept" (click)="acceptFriendRequest(request.id)">
+                  <i class="fa fa-check"></i>
+                </button>
+                <button class="request-action-btn decline" (click)="declineFriendRequest(request.id)">
+                  <i class="fa fa-times"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Friend Suggestions Tab -->
+          <div class="friend-suggestions" *ngIf="activeFriendTab === 'suggestions'">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingSuggestions" class="loading-indicator">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Finding people you might know...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div *ngIf="friendSuggestions.length === 0 && !isLoadingSuggestions" class="empty-state-content">
+              <i class="fa fa-search"></i>
+              <h3>No Suggestions</h3>
+              <p>We couldn't find any friend suggestions at the moment</p>
+            </div>
+            
+            <!-- Friend suggestions with real data -->
+            <div class="suggestion-item" *ngFor="let suggestion of friendSuggestions">
+              <div class="suggestion-avatar">
+                <img [src]="getProfileImageUrl(suggestion.profileImage)" alt="{{ suggestion.firstName }} {{ suggestion.lastName }}" onerror="this.src='assets/img/default-user.png';">
+              </div>
+              <div class="suggestion-content">
+                <h4 class="suggestion-name">{{ suggestion.firstName }} {{ suggestion.lastName }}</h4>
+                <p class="suggestion-mutual">{{ suggestion.mutualFriends || 0 }} mutual friends</p>
+                <p class="suggestion-info" *ngIf="suggestion.department">{{ suggestion.department }}</p>
+              </div>
+              <div class="suggestion-actions">
+                <button class="suggestion-action-btn add" (click)="sendFriendRequest(suggestion.id)">
+                  <i class="fa fa-user-plus"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- No Feature Selected State -->
+      <div class="feature-content-card empty-state" *ngIf="!activeFeature">
+        <div class="empty-state-content">
+          <i class="fa fa-hand-pointer-o"></i>
+          <h3>Select a Feature</h3>
+          <p>Click one of the buttons on your profile to view content here</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

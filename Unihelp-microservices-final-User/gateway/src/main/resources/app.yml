@@ -1,0 +1,72 @@
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id : r1
+            uri: lb://COURS
+            predicates:
+              - Path=/api/courses/**
+              - Path=/api/categories/**
+
+
+          - id: r2
+            uri: lb://USER
+            predicates:
+              - Path=/api/auth/**
+
+          - id: r3
+            uri: lb://USER
+            predicates:
+              - Path=/api/nlp/**
+
+          - id: r4
+            uri: lb://USER
+            predicates:
+              - Path=/api/messages/**
+
+          - id: r5
+            uri: lb://USER
+            predicates:
+              - Path=/api/friends/**
+
+          - id: r6
+            uri: lb://USER
+            predicates:
+              - Path=/api/notifications/**
+
+          - id: r6a
+            uri: lb://USER
+            predicates:
+              - Path=/api/friendships/**
+
+          - id: r7
+            uri: lb://USER
+            predicates:
+              - Path=/api/skill-matching/**
+
+          - id: r8
+            uri: lb://USER
+            predicates:
+              - Path=/api/users/**
+
+          - id: r9
+            uri: lb://USER
+            predicates:
+              - Path=/ws/**
+
+          - id: r10
+            uri: lb://BLOG
+            predicates:
+              - Path=/api/blog/**
+
+          - id: r11
+            uri: lb://EVENTS
+            predicates:
+              - Path=/api/events/**
+              - Path=/api/tickets/**
+
+  application:
+    name: gateway-service
+server:
+  port: 8888

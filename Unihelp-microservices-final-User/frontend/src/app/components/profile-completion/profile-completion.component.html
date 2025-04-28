@@ -1,0 +1,128 @@
+
+<div class="profile-completion-container">
+  <div class="form-section">
+    <div class="form-header">
+      <span class="dot"></span>
+      <h1>Complete Your Profile</h1>
+    </div>
+    <p class="subheading">Please provide some additional information to complete your profile.</p>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
+      <div class="form-group">
+        <label for="bio">BIO</label>
+        <textarea
+          id="bio"
+          formControlName="bio"
+          placeholder="Tell us about yourself"
+          class="form-control"
+          rows="4"
+        ></textarea>
+        <small
+          *ngIf="
+            profileForm.get('bio')?.invalid && profileForm.get('bio')?.touched
+          "
+          class="error-text"
+        >
+          Bio must be at least 10 characters
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="skills">SKILLS</label>
+        <div class="skills-container">
+          <div class="skills-chips">
+            <div 
+              *ngFor="let skill of profileForm.get('skillsList')?.value" 
+              class="skill-chip"
+            >
+              <span>{{ skill }}</span>
+              <button type="button" class="remove-skill" (click)="removeSkill(skill)">
+                <span>×</span>
+              </button>
+            </div>
+          </div>
+          <input
+            id="skills"
+            class="form-control skills-input"
+            placeholder="Add skills (comma-separated)"
+            (keydown)="handleSkillInputKeydown($event)"
+            #skillInput
+          />
+        </div>
+        <small
+          *ngIf="
+            profileForm.get('skillsList')?.invalid && profileForm.get('skillsList')?.touched
+          "
+          class="error-text"
+        >
+          Please add at least one skill
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="role">ROLE</label>
+        <select
+          id="role"
+          formControlName="role"
+          class="form-control"
+        >
+          <option value="" disabled selected>Select your role</option>
+          <option value="STUDENT">Student</option>
+          <option value="MENTOR">Mentor</option>
+        </select>
+        <small
+          *ngIf="
+            profileForm.get('role')?.invalid && profileForm.get('role')?.touched
+          "
+          class="error-text"
+        >
+          Please select a role
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label for="profileImage">PROFILE IMAGE</label>
+        <input
+          type="file"
+          id="profileImage"
+          (change)="onFileChange($event)"
+          class="form-control"
+          accept="image/jpeg,image/png"
+        />
+        <small
+          *ngIf="
+            profileForm.get('profileImage')?.invalid && profileForm.get('profileImage')?.touched
+          "
+          class="error-text"
+        >
+          Please upload a valid image (JPEG or PNG, max 5MB)
+        </small>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+
+      <button type="submit" class="btn-primary" [ngClass]="{ loading: isLoading }" [disabled]="profileForm.invalid || isLoading">
+        {{ isLoading ? 'Saving...' : 'Complete Profile' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Right Section (Photo Slider) -->
+  <div class="photo-section">
+    <div class="photo-slider">
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+      <img src="assets/img/students3.jpg" alt="Group project" />
+      <img src="assets/img/students4.jpg" alt="Graduation" />
+      <!-- Duplicate images for seamless looping -->
+      <img src="assets/img/students1.jpg" alt="Students studying" />
+      <img src="assets/img/students2.jpg" alt="University campus" />
+    </div>
+    <div class="photo-overlay">
+      <h2>Welcome to UniHelp</h2>
+      <p>Complete your profile to connect with students and mentors to enhance your learning experience</p>
+    </div>
+  </div>
+</div>

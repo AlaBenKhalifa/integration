@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course Detail</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link href="https://cdn.jsdelivr.net/npm/animate.css@4.1.1/animate.min.css" rel="stylesheet">
+</head>
+<body>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(145deg, #f0f4ff, #d9e2ff);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+  .container { max-width: 1200px; }
+  .course-header {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+  }
+  .course-header:hover { transform: translateY(-5px); }
+  .course-header img { object-fit: cover; height: 100%; }
+  .course-header .card-body { padding: 2rem; }
+  .course-header h1 { color: #1e3a8a; font-weight: 700; }
+  .course-meta p { margin: 0.5rem 0; color: #6b7280; }
+  .section-title { color: #2563eb; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+  .module-card {
+    background: white;
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  .module-card .card-header {
+    background: linear-gradient(to right, #2563eb, #7c3aed);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+  }
+  .module-card .card-header h3 { margin: 0; font-size: 1.25rem; }
+  .toggle-icon::after {
+    content: '\25BC';
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+  }
+  .toggle-icon.expanded::after { transform: rotate(180deg); }
+  .module-card .card-body { padding: 1.5rem; }
+  .list-group-item {
+    border: none;
+    padding: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: background 0.3s ease, transform 0.3s ease;
+    cursor: pointer;
+  }
+  .list-group-item:hover { background: #f8fafc; transform: translateX(5px); }
+  .lesson-icon { width: 24px; height: 24px; color: #2563eb; }
+  .lesson-title { flex: 1; }
+  .lesson-preview {
+    max-width: 80px;
+    border-radius: 0.5rem;
+    border: 2px solid #2563eb;
+  }
+  .add-lesson, .update-modal {
+    background: #f8fafc;
+    padding: 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+  }
+  .add-lesson:hover, .update-modal:hover { transform: translateY(-3px); }
+  .add-lesson input, .add-lesson textarea, .update-modal input, .update-modal textarea {
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    font-size: 1rem;
+    color: #1e3a8a;
+    background: white;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+  .add-lesson input:focus, .add-lesson textarea:focus, .update-modal input:focus, .update-modal textarea:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 8px rgba(37, 99, 235, 0.3);
+    outline: none;
+  }
+  .add-lesson textarea, .update-modal textarea { resize: vertical; min-height: 80px; }
+  .add-lesson .is-invalid, .update-modal .is-invalid { border-color: #dc2626; }
+  .invalid-feedback { font-size: 0.875rem; color: #dc2626; }
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.3s ease, background 0.3s ease;
+  }
+  .upload-area.dragover { border-color: #2563eb; background: rgba(37, 99, 235, 0.1); }
+  .upload-area:hover { border-color: #2563eb; }
+  .upload-label { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: #1e3a8a; font-weight: 500; }
+  .upload-icon svg { width: 2rem; height: 2rem; transition: transform 0.3s ease; }
+  .upload-area:hover .upload-icon svg { transform: scale(1.1); }
+  .preview-area { margin-top: 1rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .preview-file { max-width: 100px; border-radius: 0.5rem; border: 2px solid #2563eb; }
+  .remove-file-btn {
+    background: #dc2626;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .remove-file-btn:hover { transform: scale(1.2); }
+  .remove-file-btn svg { width: 16px; height: 16px; stroke: white; }
+  .add-lesson-btn, .add-module-btn, .update-btn {
+    background: linear-gradient(45deg, #2563eb, #7c3aed);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 50px;
+    font-weight: 600;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+  .add-lesson-btn:hover, .add-module-btn:hover, .update-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2); }
+  .add-lesson-btn:disabled, .add-module-btn:disabled, .update-btn:disabled { background: #d1d5db; cursor: not-allowed; }
+  .add-lesson-btn.loading::after, .add-module-btn.loading::after, .update-btn.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .add-lesson-btn.loading span, .add-module-btn.loading span, .update-btn.loading span { opacity: 0; }
+  .response-message {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+  }
+  .response-message.success { background: #ecfdf5; color: #059669; }
+  .response-message.error { background: #fef2f2; color: #dc2626; }
+  .video-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .video-modal-content {
+    background: white;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    max-width: 90%;
+    max-height: 90%;
+    position: relative;
+    border: 3px solid #2563eb;
+    animation: zoomIn 0.3s ease-in-out;
+  }
+  .video-modal-content video {
+    width: 100%;
+    max-height: 70vh;
+    border-radius: 0.5rem;
+  }
+  .video-modal-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background: #dc2626;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .video-modal-close:hover { transform: scale(1.2); }
+  .video-modal-close svg { width: 20px; height: 20px; stroke: white; }
+  .modal-content { border: none; border-radius: 1rem; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); }
+  .modal-header { background: linear-gradient(to right, #2563eb, #7c3aed); color: white; border-radius: 1rem 1rem 0 0; }
+  .modal-title { font-weight: 700; }
+  .modal-body { background: #f8fafc; }
+  .modal-footer { border-top: none; }
+  @keyframes zoomIn {
+    from { transform: scale(0.7); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  @keyframes zoomOut {
+    from { transform: scale(1); opacity: 1; }
+    to { transform: scale(0.7); opacity: 0; }
+  }
+  .modal-closing { animation: zoomOut 0.3s ease-in-out; }
+  @keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  @media (max-width: 768px) {
+    .course-header .row { flex-direction: column; }
+    .course-header img { height: auto; border-radius: 1rem 1rem 0 0; }
+    .preview-file { max-width: 80px; }
+    .add-lesson, .update-modal { padding: 1rem; }
+    .video-modal-content { max-width: 95%; }
+  }
+</style>
+
+<div class="container py-5" *ngIf="course">
+  <div class="course-header card shadow-sm mb-5 animate__animated animate__fadeIn">
+    <div class="row g-0">
+      <div class="col-md-4">
+        <img [src]="course.thumbnailUrl" [alt]="course.title + ' Thumbnail'" class="img-fluid rounded-start" width="400" height="220">
+      </div>
+      <div class="col-md-8">
+        <div class="card-body">
+          <h1 class="card-title display-5">{{ course.title }}</h1>
+          <p class="card-text lead">{{ course.description }}</p>
+          <div class="course-meta">
+            <p><strong>Category:</strong> {{ course.category }}</p>
+            <p><strong>Level:</strong> {{ course.level }}</p>
+            <p><strong>Price:</strong> ${{ course.price }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-title mb-4 animate__animated animate__fadeIn">Course Modules</h2>
+  <div class="d-flex justify-content-end mb-3">
+    <button class="add-module-btn" (click)="openModuleModal()" title="Add new module">
+      <span>Add Module</span>
+    </button>
+  </div>
+  <div class="modules-list">
+    <div *ngFor="let module of modules; let i = index" class="module-card card shadow-sm mb-3 animate__animated animate__fadeInUp" [style.animation-delay]="i * 0.1 + 's'">
+      <div class="card-header" (click)="toggleModule(module.id)">
+        <div class="d-flex justify-content-between align-items-center">
+          <h3 class="card-title mb-0">{{ module.title }}</h3>
+          <div class="d-flex align-items-center">
+            <button *ngIf="mockUser.role === 'INSTRUCTOR'" class="update-btn btn-sm ms-2" (click)="openUpdateModuleModal(module); $event.stopPropagation()" title="Update module">
+              <span>Update</span>
+            </button>
+            <span class="toggle-icon" [ngClass]="{'expanded': expandedModule === module.id}"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card-body" [@expandCollapse]="expandedModule === module.id ? 'expanded' : 'collapsed'">
+        <p>{{ module.description }}</p>
+        <h4 class="mt-4">Lessons</h4>
+        <ul class="list-group list-group-flush">
+          <li *ngFor="let lesson of module.lessons" class="list-group-item animate__animated animate__fadeIn">
+            <span class="lesson-icon">
+              <svg *ngIf="lesson.contentType === 'pdf'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <svg *ngIf="lesson.contentType === 'video'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <svg *ngIf="!lesson.contentType" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </span>
+            <span class="lesson-title">{{ lesson.title }}</span>
+            <img
+              *ngIf="lesson.contentType === 'video'"
+              [src]="lesson.thumbnailUrl || 'assets/default-thumbnail.png'"
+              class="lesson-preview"
+              (click)="openVideoModal(lesson)"
+              (error)="onImageError($event)"
+              alt="Lesson thumbnail"
+            />
+            <img *ngIf="lesson.contentType === 'video' && !lesson.thumbnailUrl" src="assets/video-icon.png" class="lesson-preview" (click)="openVideoModal(lesson)" alt="Video icon">
+            <a *ngIf="lesson.contentType === 'pdf' && lesson.contentUrl" [href]="getVideoUrl(lesson)" target="_blank" class="btn btn-sm btn-outline-primary">View PDF</a>
+            <button *ngIf="mockUser.role === 'INSTRUCTOR'" class="update-btn btn-sm ms-2" (click)="openUpdateLessonModal(lesson, module.id)" title="Update lesson">
+              <span>Update</span>
+            </button>
+          </li>
+          <li class="list-group-item" *ngIf="!module.lessons?.length">No lessons yet.</li>
+        </ul>
+        <div class="add-lesson mt-4 animate__animated animate__fadeIn">
+          <h5>Add a Lesson</h5>
+          <form #lessonForm="ngForm" (ngSubmit)="addLesson(module.id)">
+            <div class="mb-3">
+              <label for="lesson-title-{{module.id}}" class="form-label">Lesson Title</label>
+              <input
+                id="lesson-title-{{module.id}}"
+                name="title-{{module.id}}"
+                [(ngModel)]="newLesson[module.id].title"
+                placeholder="Enter lesson title"
+                class="form-control"
+                required
+                #title="ngModel"
+                [ngClass]="{'is-invalid': title.invalid && (title.dirty || title.touched)}"
+              >
+              <div *ngIf="title.invalid && (title.dirty || title.touched)" class="invalid-feedback animate__animated animate__shakeX">
+                Lesson title is required.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="lesson-desc-{{module.id}}" class="form-label">Description (Optional)</label>
+              <textarea
+                id="lesson-desc-{{module.id}}"
+                name="desc-{{module.id}}"
+                [(ngModel)]="newLesson[module.id].description"
+                placeholder="Describe the lesson"
+                class="form-control"
+              ></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Upload Content (PDF or Video)</label>
+              <div
+                class="upload-area"
+                (dragover)="onDragOver($event, module.id)"
+                (dragleave)="onDragLeave($event, module.id)"
+                (drop)="onDrop($event, module.id)"
+                [ngClass]="{'dragover': newLesson[module.id].isDragging}"
+              >
+                <input
+                  type="file"
+                  id="lesson-file-{{module.id}}"
+                  name="file-{{module.id}}"
+                  accept=".pdf,video/*"
+                  (change)="onFileSelected($event, module.id)"
+                  hidden
+                >
+                <label for="lesson-file-{{module.id}}" class="upload-label">
+                  <span class="upload-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                    </svg>
+                  </span>
+                  <span>Drag & drop or click to upload PDF/video</span>
+                </label>
+              </div>
+              <div class="preview-area" *ngIf="newLesson[module.id].filePreview">
+                <img
+                  *ngIf="newLesson[module.id].fileType === 'pdf'"
+                  src="assets/pdf-icon.png"
+                  class="preview-file animate__animated animate__pulse"
+                  alt="PDF preview"
+                >
+                <img
+                  *ngIf="newLesson[module.id].fileType === 'video'"
+                  [src]="newLesson[module.id].filePreview"
+                  class="preview-file animate__animated animate__pulse"
+                  alt="Video thumbnail"
+                >
+                <button class="remove-file-btn" (click)="removeFile(module.id)" title="Remove file">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              class="add-lesson-btn"
+              [disabled]="lessonForm.invalid || isSubmitting[module.id]"
+              [ngClass]="{'loading': isSubmitting[module.id]}"
+              title="Add lesson"
+            >
+              <span>Add Lesson</span>
+            </button>
+            <div
+              *ngIf="responseMessage[module.id]"
+              class="response-message animate__animated animate__fadeIn"
+              [ngClass]="{'success': responseMessage[module.id].includes('successfully'), 'error': !responseMessage[module.id].includes('successfully')}"
+            >
+              {{ responseMessage[module.id] }}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="!modules.length" class="alert alert-info animate__animated animate__fadeIn">
+      No modules available for this course.
+    </div>
+  </div>
+</div>
+
+<!-- Add Module Modal -->
+<div *ngIf="showModuleModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.7);" [@modalAnimation]="modalState">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content animate__animated animate__zoomIn">
+      <div class="modal-header">
+        <h5 class="modal-title">Add New Module</h5>
+        <button type="button" class="btn-close" (click)="closeModuleModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form #moduleForm="ngForm" (ngSubmit)="addModule()">
+          <div class="mb-3">
+            <label for="module-title" class="form-label">Module Title</label>
+            <input
+              id="module-title"
+              name="module-title"
+              [(ngModel)]="newModule.title"
+              placeholder="Enter module title"
+              class="form-control"
+              required
+              #moduleTitle="ngModel"
+              [ngClass]="{'is-invalid': moduleTitle.invalid && (moduleTitle.dirty || moduleTitle.touched)}"
+            >
+            <div *ngIf="moduleTitle.invalid && (moduleTitle.dirty || moduleTitle.touched)" class="invalid-feedback animate__animated animate__shakeX">
+              Module title is required.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="module-desc" class="form-label">Description (Optional)</label>
+            <textarea
+              id="module-desc"
+              name="module-desc"
+              [(ngModel)]="newModule.description"
+              placeholder="Describe the module"
+              class="form-control"
+            ></textarea>
+          </div>
+          <h5 class="mt-4">Add an Optional Lesson</h5>
+          <div class="mb-3">
+            <label for="lesson-title" class="form-label">Lesson Title</label>
+            <input
+              id="lesson-title"
+              name="lesson-title"
+              [(ngModel)]="newModule.lesson.title"
+              placeholder="Enter lesson title"
+              class="form-control"
+              #lessonTitle="ngModel"
+            >
+          </div>
+          <div class="mb-3">
+            <label for="lesson-desc" class="form-label">Lesson Description (Optional)</label>
+            <textarea
+              id="lesson-desc"
+              name="lesson-desc"
+              [(ngModel)]="newModule.lesson.description"
+              placeholder="Describe the lesson"
+              class="form-control"
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Upload Lesson Content (PDF or Video, Optional)</label>
+            <div
+              class="upload-area"
+              (dragover)="onModuleDragOver($event)"
+              (dragleave)="onModuleDragLeave($event)"
+              (drop)="onModuleDrop($event)"
+              [ngClass]="{'dragover': newModule.lesson.isDragging}"
+            >
+              <input
+                type="file"
+                id="lesson-file"
+                name="lesson-file"
+                accept=".pdf,video/*"
+                (change)="onModuleFileSelected($event)"
+                hidden
+              >
+              <label for="lesson-file" class="upload-label">
+                <span class="upload-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                </span>
+                <span>Drag & drop or click to upload PDF/video</span>
+              </label>
+            </div>
+            <div class="preview-area" *ngIf="newModule.lesson.filePreview">
+              <img
+                *ngIf="newModule.lesson.fileType === 'pdf'"
+                src="assets/pdf-icon.png"
+                class="preview-file animate__animated animate__pulse"
+                alt="PDF preview"
+              >
+              <img
+                *ngIf="newModule.lesson.fileType === 'video'"
+                [src]="newModule.lesson.filePreview"
+                class="preview-file animate__animated animate__pulse"
+                alt="Video thumbnail"
+              >
+              <button class="remove-file-btn" (click)="removeModuleFile()" title="Remove file">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div
+              *ngIf="moduleResponseMessage"
+              class="response-message animate__animated animate__fadeIn mt-3"
+              [ngClass]="{'success': moduleResponseMessage.includes('successfully'), 'error': !moduleResponseMessage.includes('successfully')}"
+            >
+              {{ moduleResponseMessage }}
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="add-module-btn"
+            [disabled]="moduleForm.invalid || isSubmittingModule"
+            [ngClass]="{'loading': isSubmittingModule}"
+            title="Add module"
+          >
+            <span>Add Module</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Module Modal -->
+<div *ngIf="showUpdateModuleModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.7);" [@modalAnimation]="modalState">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content animate__animated animate__zoomIn">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Module</h5>
+        <button type="button" class="btn-close" (click)="closeUpdateModuleModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body update-modal">
+        <form #updateModuleForm="ngForm" (ngSubmit)="updateModule()">
+          <div class="mb-3">
+            <label for="update-module-title" class="form-label">Module Title</label>
+            <input
+              id="update-module-title"
+              name="update-module-title"
+              [(ngModel)]="updatedModule.title"
+            placeholder="Enter module title"
+            class="form-control"
+            required
+            #moduleTitle="ngModel"
+            [ngClass]="{'is-invalid': moduleTitle.invalid && (moduleTitle.dirty || moduleTitle.touched)}"
+            >
+            <div *ngIf="moduleTitle.invalid && (moduleTitle.dirty || moduleTitle.touched)" class="invalid-feedback animate__animated animate__shakeX">
+              Module title is required.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="update-module-desc" class="form-label">Description (Optional)</label>
+            <textarea
+              id="update-module-desc"
+              name="update-module-desc"
+              [(ngModel)]="updatedModule.description"
+            placeholder="Describe the module"
+            class="form-control"
+            ></textarea>
+          </div>
+          <button
+            type="submit"
+            class="update-btn"
+            [disabled]="updateModuleForm.invalid || isSubmittingUpdate"
+            [ngClass]="{'loading': isSubmittingUpdate}"
+            title="Update module"
+          >
+            <span>Update Module</span>
+          </button>
+          <div
+            *ngIf="updateResponseMessage"
+            class="response-message animate__animated animate__fadeIn mt-3"
+            [ngClass]="{'success': updateResponseMessage.includes('successfully'), 'error': !updateResponseMessage.includes('successfully')}"
+          >
+            {{ updateResponseMessage }}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Update Lesson Modal -->
+<div *ngIf="showUpdateLessonModal" class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.7);" [@modalAnimation]="modalState">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content animate__animated animate__zoomIn">
+      <div class="modal-header">
+        <h5 class="modal-title">Update Lesson</h5>
+        <button type="button" class="btn-close" (click)="closeUpdateLessonModal()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body update-modal">
+        <form #updateLessonForm="ngForm" (ngSubmit)="updateLesson()">
+          <div class="mb-3">
+            <label for="update-lesson-title" class="form-label">Lesson Title</label>
+            <input
+              id="update-lesson-title"
+              name="update-lesson-title"
+              [(ngModel)]="updatedLesson.title"
+              placeholder="Enter lesson title"
+              class="form-control"
+              required
+              #lessonTitle="ngModel"
+              [ngClass]="{'is-invalid': lessonTitle.invalid && (lessonTitle.dirty || lessonTitle.touched)}"
+            >
+            <div *ngIf="lessonTitle.invalid && (lessonTitle.dirty || lessonTitle.touched)" class="invalid-feedback animate__animated animate__shakeX">
+              Lesson title is required.
+            </div>
+          </div>
+          <div class="mb-3">
+            <label for="update-lesson-desc" class="form-label">Description (Optional)</label>
+            <textarea
+              id="update-lesson-desc"
+              name="update-lesson-desc"
+              [(ngModel)]="updatedLesson.description"
+              placeholder="Describe the lesson"
+              class="form-control"
+            ></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Upload New Content (PDF or Video, Optional)</label>
+            <div
+              class="upload-area"
+              (dragover)="onUpdateDragOver($event)"
+              (dragleave)="onUpdateDragLeave($event)"
+              (drop)="onUpdateDrop($event)"
+              [ngClass]="{'dragover': updatedLesson.isDragging}"
+            >
+              <input
+                type="file"
+                id="update-lesson-file"
+                name="update-lesson-file"
+                accept=".pdf,video/*"
+                (change)="onUpdateFileSelected($event)"
+                hidden
+              >
+              <label for="update-lesson-file" class="upload-label">
+                <span class="upload-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                </span>
+                <span>Drag & drop or click to upload PDF/video</span>
+              </label>
+            </div>
+            <div class="preview-area" *ngIf="updatedLesson.filePreview">
+              <img
+                *ngIf="updatedLesson.fileType === 'pdf'"
+                src="assets/pdf-icon.png"
+                class="preview-file animate__animated animate__pulse"
+                alt="PDF preview"
+              >
+              <img
+                *ngIf="updatedLesson.fileType === 'video'"
+                [src]="updatedLesson.filePreview"
+                class="preview-file animate__animated animate__pulse"
+                alt="Video thumbnail"
+              >
+              <button class="remove-file-btn" (click)="removeUpdateFile()" title="Remove file">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div
+              *ngIf="updateResponseMessage"
+              class="response-message animate__animated animate__fadeIn mt-3"
+              [ngClass]="{'success': updateResponseMessage.includes('successfully'), 'error': !updateResponseMessage.includes('successfully')}"
+            >
+              {{ updateResponseMessage }}
+            </div>
+          </div>
+          <button
+            type="submit"
+            class="update-btn"
+            [disabled]="updateLessonForm.invalid || isSubmittingUpdate"
+            [ngClass]="{'loading': isSubmittingUpdate}"
+            title="Update lesson"
+          >
+            <span>Update Lesson</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div *ngIf="selectedVideo" class="video-modal" [@modalAnimation]="modalState" [ngClass]="{'modal-closing': modalState === 'closing'}">
+  <div class="video-modal-content animate__animated" [ngClass]="{'animate__zoomIn': modalState === 'open', 'animate__zoomOut': modalState === 'closing'}">
+    <button class="video-modal-close" (click)="closeVideoModal()" title="Close video">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+    <video controls autoplay *ngIf="selectedVideo.contentType === 'video'" [src]="getVideoUrl(selectedVideo)" class="animate__animated animate__fadeIn"></video>
+  </div>
+</div>
+</body>
+</html>

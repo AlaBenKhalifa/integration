@@ -1,0 +1,30 @@
+server:
+  port: 8073
+
+spring:
+  application:
+    name: user
+  config:
+    import: optional:configserver:${CONFIG_SERVICE_URL:http://localhost:9999}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: abderraouf.mahmoudi2001@gmail.com
+    password: gkgrmdspjnvdplta
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 464900684466-96jtnmiv303pv1tfgh9c4010cb0dobvq.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+

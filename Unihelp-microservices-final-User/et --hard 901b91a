@@ -1,0 +1,22 @@
+[33m42fc1f0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mUser[m[33m)[m Re-add cleaned application.yml
+[33m229c6d7[m sign in/up with google+profile completion.
+[33m901b91a[m sign in/up with google+profile completion
+[33m9d7acfa[m[33m ([m[1;31morigin/User[m[33m)[m fixed email template
+[33md9ec99f[m handling issues in reset password
+[33mc45add4[m reset password working well
+[33mef5749a[m header in backoffice+tri+recherche
+[33me560ad0[m handling sessions between front and back office
+[33m4a7d5bb[m starting backOffice+ listing user+ buttons
+[33m31db5dd[m fixed issues in profile modification+starting backOffice
+[33m675f786[m fixed ui with modal for sign up and card for reset
+[33m9ead63a[m login lougout fixed with authguard and jwt
+[33m0ba87e0[m fixed registration with image upload testing on postman
+[33ma75b186[m testing route on docker with front
+[33m0ba6e22[m integration back office
+[33mf60b962[m last fixes
+[33m83d651e[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m config final2
+[33m598762b[m config final
+[33m7f54ca4[m config final
+[33m7209435[m microservices architecture+frontend container
+[33m5e25a88[m microservices architecture+frontend container
+[33m830af02[m microservices architecture
