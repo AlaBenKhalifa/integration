@@ -2,8 +2,10 @@ import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { AvatarService } from '../../services/avatar.service';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -18,11 +20,18 @@ export class ProfileCompletionComponent implements OnInit {
   isLoading = false;
   userId: number = 0; // Initialize with default value
   
+  // Avatar generation properties
+  avatarPreviewUrl: SafeUrl | null = null;
+  isGeneratingAvatar = false;
+  generatedAvatarFile: File | null = null;
+  
   @ViewChild('skillInput') skillInput!: ElementRef;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private avatarService: AvatarService,
+    private sanitizer: DomSanitizer,
     private router: Router
   ) {
     this.profileForm = this.fb.group({
@@ -150,9 +159,106 @@ export class ProfileCompletionComponent implements OnInit {
         this.profileForm.get('profileImage')?.setErrors({ type: true });
         return;
       }
+      
+      // Clear any generated avatar when a file is uploaded
+      this.generatedAvatarFile = null;
+      this.avatarPreviewUrl = null;
+      
+      // Create a preview URL for the selected file
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
       this.profileForm.patchValue({ profileImage: file });
       this.profileForm.get('profileImage')?.updateValueAndValidity();
     }
+  }
+  
+  /**
+   * Generate a random avatar using the avatar service
+   */
+  generateAvatar(): void {
+    this.isGeneratingAvatar = true;
+    
+    // Use user's email or ID as seed for consistent avatars
+    const userStr = localStorage.getItem('user');
+    let seed = this.userId.toString();
+    
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.email) {
+        seed = user.email;
+      }
+    }
+    
+    this.avatarService.generateAvatar(seed).subscribe(blob => {
+      // Create object URL for preview
+      const objectUrl = URL.createObjectURL(blob);
+      this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+      
+      // Convert SVG to PNG for better compatibility with backend
+      this.avatarService.convertSvgToPng(blob).then(pngFile => {
+        // Store the avatar PNG file for form submission
+        this.generatedAvatarFile = pngFile;
+        
+        // Update the form with the generated avatar
+        this.profileForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.profileForm.get('profileImage')?.updateValueAndValidity();
+        
+        this.isGeneratingAvatar = false;
+      }).catch(error => {
+        console.error('Error converting SVG to PNG:', error);
+        
+        // Fallback to SVG if conversion fails
+        this.generatedAvatarFile = this.avatarService.blobToFile(blob, `avatar-${Date.now()}.svg`);
+        this.profileForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.profileForm.get('profileImage')?.updateValueAndValidity();
+        
+        this.isGeneratingAvatar = false;
+      });
+    });
+  }
+  
+  /**
+   * Generate a different style of avatar
+   */
+  changeAvatarStyle(): void {
+    this.isGeneratingAvatar = true;
+    this.avatarService.nextStyle();
+    
+    // Use the same seed for consistency
+    const userStr = localStorage.getItem('user');
+    let seed = this.userId.toString();
+    
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      if (user.email) {
+        seed = user.email;
+      }
+    }
+    
+    this.avatarService.generateAvatar(seed).subscribe(blob => {
+      // Create object URL for preview
+      const objectUrl = URL.createObjectURL(blob);
+      this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+      
+      // Convert SVG to PNG
+      this.avatarService.convertSvgToPng(blob).then(pngFile => {
+        this.generatedAvatarFile = pngFile;
+        this.profileForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.profileForm.get('profileImage')?.updateValueAndValidity();
+        this.isGeneratingAvatar = false;
+      }).catch(error => {
+        console.error('Error converting SVG to PNG:', error);
+        // Fallback to SVG
+        this.generatedAvatarFile = this.avatarService.blobToFile(blob, `avatar-${Date.now()}.svg`);
+        this.profileForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.profileForm.get('profileImage')?.updateValueAndValidity();
+        this.isGeneratingAvatar = false;
+      });
+    });
   }
 
   onSubmit(): void {
@@ -176,8 +282,16 @@ export class ProfileCompletionComponent implements OnInit {
     const role = this.profileForm.get('role')?.value;
     if (role) formData.append('role', role);
     
-    const profileImage = this.profileForm.get('profileImage')?.value;
-    if (profileImage) formData.append('profileImage', profileImage);
+    // Use either the generated avatar file or the uploaded profile image
+    let profileImage = this.profileForm.get('profileImage')?.value;
+    if (profileImage) {
+      if (this.generatedAvatarFile && profileImage === this.generatedAvatarFile) {
+        console.log('Using generated avatar for profile');
+      } else {
+        console.log('Using uploaded image for profile');
+      }
+      formData.append('profileImage', profileImage);
+    }
 
     this.authService.completeProfile(this.userId, formData).subscribe({
       next: (response) => {

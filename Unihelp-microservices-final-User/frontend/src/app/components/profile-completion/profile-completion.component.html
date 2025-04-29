@@ -82,20 +82,51 @@
 
       <div class="form-group">
         <label for="profileImage">PROFILE IMAGE</label>
-        <input
-          type="file"
-          id="profileImage"
-          (change)="onFileChange($event)"
-          class="form-control"
-          accept="image/jpeg,image/png"
-        />
+        
+        <div class="avatar-section">
+          <!-- Avatar preview -->
+          <div class="avatar-preview" *ngIf="avatarPreviewUrl">
+            <img [src]="avatarPreviewUrl" alt="Avatar preview" />
+          </div>
+          
+          <div class="avatar-controls">
+            <!-- File upload -->
+            <div class="upload-control">
+              <input
+                type="file"
+                id="profileImage"
+                (change)="onFileChange($event)"
+                class="form-control"
+                accept="image/jpeg,image/png"
+              />
+              <small>Upload JPEG or PNG (max 5MB)</small>
+            </div>
+            
+            <!-- OR divider -->
+            <div class="or-divider">
+              <span>OR</span>
+            </div>
+            
+            <!-- Avatar generation buttons -->
+            <div class="avatar-generation">
+              <button type="button" class="btn-secondary" [disabled]="isGeneratingAvatar" (click)="generateAvatar()">
+                {{ generatedAvatarFile ? 'Regenerate Avatar' : 'Generate Random Avatar' }}
+              </button>
+              <button type="button" class="btn-outline" *ngIf="generatedAvatarFile" (click)="changeAvatarStyle()" [disabled]="isGeneratingAvatar">
+                Try Different Style
+              </button>
+              <small *ngIf="isGeneratingAvatar">Generating avatar...</small>
+            </div>
+          </div>
+        </div>
+        
         <small
           *ngIf="
             profileForm.get('profileImage')?.invalid && profileForm.get('profileImage')?.touched
           "
           class="error-text"
         >
-          Please upload a valid image (JPEG or PNG, max 5MB)
+          Please upload a valid image or generate an avatar
         </small>
       </div>
 
