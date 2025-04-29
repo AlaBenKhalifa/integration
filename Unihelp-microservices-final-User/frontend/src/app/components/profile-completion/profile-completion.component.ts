@@ -76,7 +76,7 @@ export class ProfileCompletionComponent implements OnInit {
   
   // Handle keydown events for the skills input
   handleSkillInputKeydown(event: KeyboardEvent): void {
-    // Only process comma or Enter key
+    // Process skill input on comma or Enter key
     if (event.key === ',' || event.key === 'Enter') {
       event.preventDefault();
       
@@ -84,29 +84,34 @@ export class ProfileCompletionComponent implements OnInit {
       const value = input.value.trim();
       
       if (value) {
-        // Split by comma in case multiple skills were pasted
-        const skillsToAdd = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        
-        const currentSkills = this.profileForm.get('skillsList')?.value || [];
-        
-        // Add each skill if it's not already in the list
-        let skillsAdded = false;
-        for (const skill of skillsToAdd) {
-          if (skill && !currentSkills.includes(skill)) {
-            currentSkills.push(skill);
-            skillsAdded = true;
-          }
-        }
-        
-        if (skillsAdded) {
-          this.profileForm.get('skillsList')?.setValue([...currentSkills]);
-          this.profileForm.get('skillsList')?.markAsTouched();
-        }
-        
-        // Clear the input
-        input.value = '';
+        this.processSkillInput(value);
       }
     }
+  }
+  
+  // Helper method to process skill input
+  private processSkillInput(inputValue: string): void {
+    // Split by comma and process each skill
+    const skillsToAdd = inputValue.split(',').map(s => s.trim()).filter(s => s.length > 0);
+    
+    const currentSkills = this.profileForm.get('skillsList')?.value || [];
+    
+    // Add each skill if it's not already in the list
+    let skillsAdded = false;
+    for (const skill of skillsToAdd) {
+      if (skill && !currentSkills.includes(skill)) {
+        currentSkills.push(skill);
+        skillsAdded = true;
+      }
+    }
+    
+    if (skillsAdded) {
+      this.profileForm.get('skillsList')?.setValue([...currentSkills]);
+      this.profileForm.get('skillsList')?.markAsTouched();
+    }
+    
+    // Clear the input
+    this.skillInput.nativeElement.value = '';
   }
   
   // Kept for backward compatibility
@@ -117,28 +122,9 @@ export class ProfileCompletionComponent implements OnInit {
     const value = input.value.trim();
     
     if (value) {
-      // Split by comma in case multiple skills were pasted
-      const skillsToAdd = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-      
-      const currentSkills = this.profileForm.get('skillsList')?.value || [];
-      
-      // Add each skill if it's not already in the list
-      let skillsAdded = false;
-      for (const skill of skillsToAdd) {
-        if (skill && !currentSkills.includes(skill)) {
-          currentSkills.push(skill);
-          skillsAdded = true;
-        }
-      }
-      
-      if (skillsAdded) {
-        this.profileForm.get('skillsList')?.setValue([...currentSkills]);
-        this.profileForm.get('skillsList')?.markAsTouched();
-      }
+      // Use the shared processing method
+      this.processSkillInput(value);
     }
-    
-    // Clear the input
-    input.value = '';
   }
 
   removeSkill(skill: string): void {
