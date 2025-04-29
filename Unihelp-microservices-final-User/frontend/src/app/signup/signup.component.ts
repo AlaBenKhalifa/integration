@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { AvatarService } from '../services/avatar.service';
+import { RecaptchaService } from '../services/recaptcha.service';
 import { MatChipInputEvent } from '@angular/material/chips';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { finalize } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 declare const google: any;
@@ -20,10 +24,20 @@ export class SignupComponent implements OnInit {
   showPassword = false;
   currentStep = 1;
   isLoading = false;
+  
+  // Avatar generation properties
+  avatarPreviewUrl: SafeUrl | null = null;
+  isGeneratingAvatar = false;
+  generatedAvatarFile: File | null = null;
+  
+  @ViewChild('profileImageInput') profileImageInput!: ElementRef;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private avatarService: AvatarService,
+    private recaptchaService: RecaptchaService,
+    private sanitizer: DomSanitizer,
     private router: Router
   ) {
     this.signupForm = this.fb.group({
@@ -124,9 +138,90 @@ export class SignupComponent implements OnInit {
         this.signupForm.get('profileImage')?.setErrors({ type: true });
         return;
       }
+      
+      // Clear any generated avatar when a file is uploaded
+      this.generatedAvatarFile = null;
+      this.avatarPreviewUrl = null;
+      
+      // Create a preview URL for the selected file
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      
       this.signupForm.patchValue({ profileImage: file });
       this.signupForm.get('profileImage')?.updateValueAndValidity();
     }
+  }
+  
+  /**
+   * Generate a random avatar using the avatar service
+   */
+  generateAvatar(): void {
+    this.isGeneratingAvatar = true;
+    
+    // Use email as seed if available, otherwise use a random seed
+    let seed = this.signupForm.get('email')?.value || Math.random().toString(36).substring(2, 8);
+    
+    this.avatarService.generateAvatar(seed).subscribe(blob => {
+      // Create object URL for preview
+      const objectUrl = URL.createObjectURL(blob);
+      this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+      
+      // Convert SVG to PNG for better compatibility with backend
+      this.avatarService.convertSvgToPng(blob).then(pngFile => {
+        // Store the avatar PNG file for form submission
+        this.generatedAvatarFile = pngFile;
+        
+        // Update the form with the generated avatar
+        this.signupForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.signupForm.get('profileImage')?.updateValueAndValidity();
+        
+        this.isGeneratingAvatar = false;
+      }).catch(error => {
+        console.error('Error converting SVG to PNG:', error);
+        
+        // Fallback to SVG if conversion fails
+        this.generatedAvatarFile = this.avatarService.blobToFile(blob, `avatar-${Date.now()}.svg`);
+        this.signupForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.signupForm.get('profileImage')?.updateValueAndValidity();
+        
+        this.isGeneratingAvatar = false;
+      });
+    });
+  }
+  
+  /**
+   * Generate a different style of avatar
+   */
+  changeAvatarStyle(): void {
+    this.isGeneratingAvatar = true;
+    this.avatarService.nextStyle();
+    
+    // Use the same seed for consistency
+    let seed = this.signupForm.get('email')?.value || Math.random().toString(36).substring(2, 8);
+    
+    this.avatarService.generateAvatar(seed).subscribe(blob => {
+      // Create object URL for preview
+      const objectUrl = URL.createObjectURL(blob);
+      this.avatarPreviewUrl = this.sanitizer.bypassSecurityTrustUrl(objectUrl);
+      
+      // Convert SVG to PNG
+      this.avatarService.convertSvgToPng(blob).then(pngFile => {
+        this.generatedAvatarFile = pngFile;
+        this.signupForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.signupForm.get('profileImage')?.updateValueAndValidity();
+        this.isGeneratingAvatar = false;
+      }).catch(error => {
+        console.error('Error converting SVG to PNG:', error);
+        // Fallback to SVG
+        this.generatedAvatarFile = this.avatarService.blobToFile(blob, `avatar-${Date.now()}.svg`);
+        this.signupForm.patchValue({ profileImage: this.generatedAvatarFile });
+        this.signupForm.get('profileImage')?.updateValueAndValidity();
+        this.isGeneratingAvatar = false;
+      });
+    });
   }
 
   onSubmit(): void {
@@ -142,11 +237,48 @@ export class SignupComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = null;
 
+    // Execute reCAPTCHA verification before form submission
+    console.log('Executing reCAPTCHA verification');
+    this.recaptchaService.executeRecaptcha('signup')
+      .pipe(
+        finalize(() => {
+          // This ensures loading state is reset if reCAPTCHA fails
+          if (this.isLoading && !this.signupForm.valid) {
+            this.isLoading = false;
+          }
+        })
+      )
+      .subscribe({
+        next: (token) => {
+          console.log('reCAPTCHA validation successful');
+          this.submitSignupForm(token);
+        },
+        error: (error) => {
+          console.error('reCAPTCHA validation failed:', error);
+          this.isLoading = false;
+          Swal.fire({
+            icon: 'error',
+            title: 'Verification Failed',
+            text: 'We could not verify that you are human. Please try again.',
+            confirmButtonText: 'OK'
+          });
+        }
+      });
+  }
+
+  /**
+   * Submit the signup form with reCAPTCHA token
+   * @param recaptchaToken The reCAPTCHA token from Google
+   */
+  private submitSignupForm(recaptchaToken: string): void {
     const formData = new FormData();
     formData.append('firstName', this.signupForm.get('firstName')?.value);
     formData.append('lastName', this.signupForm.get('lastName')?.value);
     formData.append('email', this.signupForm.get('email')?.value);
     formData.append('password', this.signupForm.get('password')?.value);
+    // Add the reCAPTCHA token to the form data
+    formData.append('g-recaptcha-response', recaptchaToken);
+
     const bio = this.signupForm.get('bio')?.value;
     if (bio) formData.append('bio', bio);
     const skills = this.signupForm.get('skills')?.value;

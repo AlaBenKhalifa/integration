@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FingerprintService } from '../../services/fingerprint.service';
+import { RecaptchaService } from '../../services/recaptcha.service';
+import { finalize } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 
 declare const google: any;
@@ -24,6 +26,7 @@ export class LoginComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private fingerprintService: FingerprintService,
+    private recaptchaService: RecaptchaService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -109,87 +112,124 @@ export class LoginComponent implements OnInit {
     if (this.loginForm.valid) {
       this.isLoading = true;
       this.errorMessage = null;
-      const loginRequest = {
-        email: this.loginForm.get('email')?.value,
-        password: this.loginForm.get('password')?.value,
-      };
-
-      console.log('📝 Login attempt for:', loginRequest.email);
-      this.authService.login(loginRequest).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          const role = response.role;
-          console.log('🔑 Login successful for:', response.email, 'with ID:', response.id);
-          
-          // DIRECT SAVING: Store login event in localStorage immediately
-          this.directlySaveLoginEvent(response.id, response.email, role);
-          
-          // Track login BEFORE potential redirect
-          this.trackUserLogin(response.id, response.email, undefined, undefined, role);
-          
-          // Store login event in sessionStorage so it's available across domains
-          this.storeLoginEventForAdmin(response.id, response.email, response.role);
-          if (role === 'ADMIN') {
-            // Do NOT store session in localStorage for admin
+      
+      // Execute reCAPTCHA verification before login submission
+      console.log('Executing reCAPTCHA verification for login');
+      this.recaptchaService.executeRecaptcha('login')
+        .pipe(
+          finalize(() => {
+            // This ensures loading state is reset if reCAPTCHA fails
+            if (this.isLoading && !this.loginForm.valid) {
+              this.isLoading = false;
+            }
+          })
+        )
+        .subscribe({
+          next: (token) => {
+            console.log('reCAPTCHA validation successful');
+            this.submitLoginForm(token);
+          },
+          error: (error) => {
+            console.error('reCAPTCHA validation failed:', error);
+            this.isLoading = false;
             Swal.fire({
-              icon: 'success',
-              title: 'Login Successful',
-              text: 'You have logged in successfully!',
-              showConfirmButton: false,
-              timer: 1500
-            }).then(() => {
-              // Pass token and user as query params for handoff
-              const token = response.token;
-              const user = JSON.stringify({
-                id: response.id,
-                email: response.email,
-                role: response.role
-              });
-              window.location.href = `http://localhost:4201/session-handoff?token=${encodeURIComponent(token)}&user=${encodeURIComponent(user)}`;
+              icon: 'error',
+              title: 'Verification Failed',
+              text: 'We could not verify that you are human. Please try again.',
+              confirmButtonText: 'OK'
             });
-          } else {
-            // Non-admin: store session in localStorage
-            localStorage.setItem('token', response.token);
-            localStorage.setItem('user', JSON.stringify({
+          }
+        });
+    }
+  }
+  
+  /**
+   * Submit the login form with reCAPTCHA token
+   * @param recaptchaToken The reCAPTCHA token from Google
+   */
+  private submitLoginForm(recaptchaToken: string): void {
+    const loginRequest = {
+      email: this.loginForm.get('email')?.value,
+      password: this.loginForm.get('password')?.value,
+      'g-recaptcha-response': recaptchaToken
+    };
+
+    console.log('📝 Login attempt for:', loginRequest.email);
+    this.authService.login(loginRequest).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        const role = response.role;
+        console.log('🔑 Login successful for:', response.email, 'with ID:', response.id);
+        
+        // DIRECT SAVING: Store login event in localStorage immediately
+        this.directlySaveLoginEvent(response.id, response.email, role);
+        
+        // Track login BEFORE potential redirect
+        this.trackUserLogin(response.id, response.email, undefined, undefined, role);
+        
+        // Store login event in sessionStorage so it's available across domains
+        this.storeLoginEventForAdmin(response.id, response.email, response.role);
+        
+        if (role === 'ADMIN') {
+          // Do NOT store session in localStorage for admin
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: 'You have logged in successfully!',
+            showConfirmButton: false,
+            timer: 1500
+          }).then(() => {
+            // Pass token and user as query params for handoff
+            const token = response.token;
+            const user = JSON.stringify({
               id: response.id,
               email: response.email,
               role: response.role
-            }));
-            Swal.fire({
-              icon: 'success',
-              title: 'Login Successful',
-              text: 'You have logged in successfully!',
-              showConfirmButton: false,
-              timer: 1500
-            }).then(() => {
-              this.router.navigate(['/profile']);
             });
-          }
-        },
-        error: (err) => {
-          this.isLoading = false;
-          
-          // Check if the error is about a banned account
-          if (err.status === 403 && err.error === 'User account is banned.') {
-            Swal.fire({
-              icon: 'error',
-              title: 'Account Banned',
-              text: 'Your account has been banned. Please contact support.',
-            });
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Login Failed',
-              text: 'Wrong credentials. Please try again.',
-            });
-          }
-          
-          // Clear localStorage on failed login
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        },
-      });
-    }
+            window.location.href = `http://localhost:4201/session-handoff?token=${encodeURIComponent(token)}&user=${encodeURIComponent(user)}`;
+          });
+        } else {
+          // Non-admin: store session in localStorage
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('user', JSON.stringify({
+            id: response.id,
+            email: response.email,
+            role: response.role
+          }));
+          Swal.fire({
+            icon: 'success',
+            title: 'Login Successful',
+            text: 'You have logged in successfully!',
+            showConfirmButton: false,
+            timer: 1500
+          }).then(() => {
+            this.router.navigate(['/profile']);
+          });
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        
+        // Check if the error is about a banned account
+        if (err.status === 403 && err.error === 'User account is banned.') {
+          Swal.fire({
+            icon: 'error',
+            title: 'Account Banned',
+            text: 'Your account has been banned. Please contact support.',
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Login Failed',
+            text: 'Wrong credentials. Please try again.',
+          });
+        }
+        
+        // Clear localStorage on failed login
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      },
+    });
   }
 
   goToSignUp(): void {
