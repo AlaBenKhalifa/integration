@@ -26,40 +26,67 @@
           <li><a routerLink="/" routerLinkActive="active">HOME</a></li>
           <li><a routerLink="/about" routerLinkActive="active">ABOUT</a></li>
           <li><a routerLink="/members" routerLinkActive="active">MEMBERS</a></li>
-          <li><a routerLink="/friends" routerLinkActive="active">FRIENDS</a></li>
-          <li><a routerLink="/groups" routerLinkActive="active">GROUPS</a></li>
-          <li><a routerLink="/job-posts" routerLinkActive="active">JOBS</a></li>
-          <li><a routerLink="/blogs" routerLinkActive="active">BLOGS</a></li>
-          <li class="menu-has-children relative">
-            <a href="#" class="hover:text-indigo-300">Events</a>
-            <ul class="absolute bg-white text-indigo-900 shadow-lg rounded-lg mt-2 hidden group-hover:block">
-              <li><a routerLink="/events" class="block px-4 py-2 hover:bg-indigo-100">All Events</a></li>
-              <li><a href="event-details.html">Event Details</a></li>
-              <li><a href="/tickets">My Tickets</a></li>
+          
+          <li class="menu-has-children"><a href="#" (click)="$event.preventDefault()">BLOGS</a>
+            <ul>
+              <li><a routerLink="/blog-home">Blog Home</a></li>
+              <li><a routerLink="/blog-single">Blog Single</a></li>
             </ul>
           </li>
-          <li class="menu-has-children relative">
-            <a href="#" class="hover:text-indigo-300">Courses</a>
-            <ul class="absolute bg-white text-indigo-900 shadow-lg rounded-lg mt-2 hidden group-hover:block">
-              <li><a routerLink="/courses" class="block px-4 py-2 hover:bg-indigo-100">All Courses</a></li>
-              <li><a routerLink="/course-details" class="block px-4 py-2 hover:bg-indigo-100">Course Details</a></li>
-              <li><a routerLink="/my-courses" class="block px-4 py-2 hover:bg-indigo-100">My Courses</a></li>
-              <li> <a routerLink="/quiz" class="btn bg-green-500 text-white">Quiz Generator</a></li>
+          
+          <li class="menu-has-children"><a href="#" (click)="$event.preventDefault()">EVENTS</a>
+            <ul>
+              <li><a routerLink="/events">All Events</a></li>
+              <li><a routerLink="/event-details">Event Details</a></li>
+              <li><a routerLink="/tickets">My Tickets</a></li>
             </ul>
           </li>
-          <li><a routerLink="/leaderboard" routerLinkActive="active">LEADERBOARD</a></li>
+          
+          <li class="menu-has-children"><a href="#" (click)="$event.preventDefault()">GROUPS</a>
+            <ul>
+              <li><a routerLink="/groups">All Groups</a></li>
+              <li><a routerLink="/create-group">Create Group</a></li>
+              <li><a routerLink="/meetings">Meetings</a></li>
+            </ul>
+          </li>
+          
+          <li class="menu-has-children"><a href="#" (click)="$event.preventDefault()">COURSES</a>
+            <ul>
+              <li><a routerLink="/courses">All Courses</a></li>
+              <li><a routerLink="/course-details">Course Details</a></li>
+              <li><a routerLink="/my-courses">My Courses</a></li>
+            </ul>
+          </li>
+          
+          <li class="menu-has-children"><a href="#" (click)="$event.preventDefault()">JOBS</a>
+            <ul>
+              <li><a routerLink="/job-offers">Job Offers</a></li>
+              <li><a routerLink="/my-applications">My Applications</a></li>
+            </ul>
+          </li>          
           <li *ngIf="!isLoggedIn" class="login-signup">
             <a routerLink="/login" class="btn btn-outline-primary">Login</a>
           </li>
           <li *ngIf="!isLoggedIn" class="login-signup">
             <a routerLink="/signup" class="btn btn-primary">Sign Up</a>
           </li>
+          
           <li *ngIf="isLoggedIn" class="menu-has-children">
-            <a href="#" (click)="$event.preventDefault(); toggleOptions()">
-              <i class="fa fa-user"></i> <i class="fa fa-caret-down"></i>
+            <a href="#" (click)="$event.preventDefault(); toggleOptions()" class="user-profile-link">
+              <div class="profile-image-container" *ngIf="currentUser">
+                <img [src]="getProfileImageUrl(currentUser.profileImage)" alt="Profile" class="profile-image">
+              </div>
+              <div class="profile-image-container" *ngIf="!currentUser">
+                <i class="fa fa-user"></i>
+              </div>
+              <i class="fa fa-caret-down"></i>
             </a>
             <ul *ngIf="showOptions">
               <li><a routerLink="/profile">Profile</a></li>
+              <li><a routerLink="/settings">Settings</a></li>
+              <li><a routerLink="/activity">My Activity</a></li>
+              <li><a routerLink="/courses">My Courses</a></li>
+              <li><a routerLink="/applications">My Applications</a></li>
               <li><a (click)="toggleLoginState()">Logout</a></li>
             </ul>
           </li>

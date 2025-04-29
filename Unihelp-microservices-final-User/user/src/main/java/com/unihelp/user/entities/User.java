@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Entity
+@Table(name = "user")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -39,10 +40,10 @@ public class User implements UserDetails {
 
     @Column(nullable = false)
     private String password;
-    
+
     @Column(name = "google_id")
     private String googleId;
-    
+
     @Builder.Default
     private boolean profileCompleted = false;
 
@@ -70,58 +71,58 @@ public class User implements UserDetails {
     @JsonManagedReference
     @Builder.Default
     private List<UserActivity> activities = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     @Builder.Default
     private List<Token> tokens = new ArrayList<>();
-    
+
     // NLP analysis results
     @ElementCollection
     @CollectionTable(name = "user_extracted_skills", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "skill")
     @Builder.Default
     private List<String> extractedSkills = new ArrayList<>();
-    
+
     @ElementCollection
     @CollectionTable(name = "user_extracted_interests", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "interest")
     @Builder.Default
     private List<String> extractedInterests = new ArrayList<>();
-    
+
     @ElementCollection
     @CollectionTable(name = "user_personality_traits", joinColumns = @JoinColumn(name = "user_id"))
     @MapKeyColumn(name = "trait")
     @Column(name = "score")
     @Builder.Default
     private Map<String, Double> personalityTraits = new HashMap<>();
-    
+
     private String dominantTrait;
-    
+
     // Friendship relationships
-    @OneToMany(mappedBy = "requester", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "requester", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default
     private Set<Friendship> sentFriendRequests = new HashSet<>();
-    
-    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "recipient", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default
     private Set<Friendship> receivedFriendRequests = new HashSet<>();
-    
+
     // Message relationships
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "sender", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default
     private Set<Message> sentMessages = new HashSet<>();
-    
-    @OneToMany(mappedBy = "recipient", cascade = CascadeType.ALL)
+
+    @OneToMany(mappedBy = "recipient", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default
     private Set<Message> receivedMessages = new HashSet<>();
-    
+
     // Notification relationship
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE}, orphanRemoval = true)
     @JsonIgnore
     @Builder.Default
     private Set<Notification> notifications = new HashSet<>();

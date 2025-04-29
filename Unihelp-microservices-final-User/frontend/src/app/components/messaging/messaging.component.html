@@ -1,7 +1,7 @@
 <!-- Messaging Component -->
-<div class="messaging-container">
-  <!-- Sidebar with conversations -->
-  <div class="conversations-sidebar">
+<div class="messaging-container" [class.popup-mode]="isPopup">
+  <!-- Sidebar with conversations - Only show in full mode -->
+  <div class="conversations-sidebar" *ngIf="!isPopup">
     <div class="sidebar-header">
       <h3>Messages</h3>
       <div class="search-box">
@@ -33,28 +33,28 @@
         [class.active]="getOtherUser(conversation).id === recipientId"
         (click)="selectConversation(conversation)"
       >
-        <div class="avatar" [style.background-image]="'url(' + (getOtherUser(conversation).profileImage || 'assets/default-avatar.png') + ')'"></div>
+        <div class="avatar" [style.background-image]="'url(' + getProfileImageForUser(getOtherUser(conversation)) + ')'"></div>
         <div class="conversation-preview">
           <div class="conversation-header">
             <h4>{{getOtherUser(conversation).firstName}} {{getOtherUser(conversation).lastName}}</h4>
             <span class="time">{{formatDate(conversation.sentAt)}}</span>
           </div>
-          <p class="last-message" [class.unread]="!conversation.read && conversation.sender.id !== currentUser.id">
-            <span *ngIf="conversation.sender.id === currentUser.id">You: </span>
+          <p class="last-message" [class.unread]="!conversation.read && currentUser && conversation.sender.id !== currentUser.id">
+            <span *ngIf="currentUser && conversation.sender.id === currentUser.id">You: </span>
             {{conversation.content | slice:0:30}}{{(conversation.content.length || 0) > 30 ? '...' : ''}}
           </p>
         </div>
-        <div *ngIf="!conversation.read && conversation.sender.id !== currentUser.id" class="unread-indicator"></div>
+        <div *ngIf="!conversation.read && currentUser && conversation.sender.id !== currentUser.id" class="unread-indicator"></div>
       </div>
     </div>
   </div>
 
   <!-- Main chat area -->
-  <div class="chat-area">
+  <div class="chat-area" [class.popup-chat-area]="isPopup">
     <!-- Chat header with recipient info -->
     <div *ngIf="recipient" class="chat-header">
       <div class="recipient-info">
-        <div class="avatar" [style.background-image]="'url(' + (recipient.profileImage || 'assets/default-avatar.png') + ')'"></div>
+        <div class="avatar" [style.background-image]="'url(' + getProfileImageForUser(recipient) + ')'"></div>
         <div class="recipient-details">
           <h4>{{recipient.firstName}} {{recipient.lastName}}</h4>
           <p *ngIf="recipient.skills">{{recipient.skills | slice:0:40}}{{(recipient.skills.length || 0) > 40 ? '...' : ''}}</p>
@@ -104,8 +104,7 @@
         <span>Loading more messages...</span>
       </div>
 
-      <!-- No messages -->
-      <div *ngIf="!isLoading && currentConversation.length === 0" class="no-messages">
+      <div *ngIf="currentConversation.length === 0" class="no-messages">
         <p>No messages yet</p>
         <span>Send a message to start the conversation</span>
       </div>
@@ -114,13 +113,13 @@
       <div *ngFor="let msg of currentConversation" class="message-wrapper">
         <div 
           class="message-bubble" 
-          [class.sent]="msg.sender.id === currentUser.id" 
-          [class.received]="msg.sender.id !== currentUser.id"
+          [class.sent]="currentUser && msg.sender.id === currentUser.id" 
+          [class.received]="currentUser && msg.sender.id !== currentUser.id"
         >
           <div class="message-content">{{msg.content}}</div>
           <div class="message-info">
             <span class="message-time">{{formatDate(msg.sentAt)}}</span>
-            <span *ngIf="msg.sender.id === currentUser.id" class="read-status">
+            <span *ngIf="currentUser && msg.sender.id === currentUser.id" class="read-status">
               <i *ngIf="msg.read" class="fas fa-check-double" title="Read"></i>
               <i *ngIf="!msg.read" class="fas fa-check" title="Sent"></i>
             </span>
@@ -131,19 +130,25 @@
 
     <!-- Message input -->
     <div *ngIf="recipient" class="message-input-container">
-      <textarea 
+      <input 
+        type="text"
         #messageInput
         [(ngModel)]="message" 
         placeholder="Type a message..." 
         (keydown.enter)="sendMessage(); $event.preventDefault()"
-      ></textarea>
+        class="message-input"
+      />
       <button 
         [disabled]="!message.trim()" 
         (click)="sendMessage()" 
         class="send-button"
         [class.disabled]="!message.trim()"
+        title="Send message"
       >
-        <i class="fas fa-paper-plane"></i>
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="send-icon">
+          <path d="M22 2L11 13"></path>
+          <path d="M22 2L15 22L11 13L2 9L22 2Z"></path>
+        </svg>
       </button>
     </div>
   </div>

@@ -14,7 +14,7 @@ import { UserService, User } from '../../../services/user.service';
 export class UsersListComponent implements OnInit {
   // Reference to Math for use in the template
   public Math = Math;
-  
+
   users: User[] = [];
   loading = true;
   error: string = '';
@@ -25,7 +25,7 @@ export class UsersListComponent implements OnInit {
   searchTerm: string = '';
   filterRole: string = '';
   filterBanned: string = '';
-  
+
   // Pagination properties
   public currentPage = 1;
   public pageSize = 6; // 6 rows per page as requested
@@ -56,7 +56,7 @@ export class UsersListComponent implements OnInit {
     }
     return filtered;
   }
-  
+
   // Getter for total number of filtered users
   get totalItems(): number {
     return this.filteredUsers.length;
@@ -67,42 +67,42 @@ export class UsersListComponent implements OnInit {
   }
 
   constructor(private userService: UserService) {}
-  
+
   // Pagination methods
   public updatePaginatedUsers(): void {
     const startIndex = (this.currentPage - 1) * this.pageSize;
     this.paginatedUsers = this.filteredUsers.slice(startIndex, startIndex + this.pageSize);
   }
-  
+
   public goToPage(page: number): void {
     if (page >= 1 && page <= this.getTotalPages()) {
       this.currentPage = page;
       this.updatePaginatedUsers();
     }
   }
-  
+
   public previousPage(): void {
     if (this.currentPage > 1) {
       this.goToPage(this.currentPage - 1);
     }
   }
-  
+
   public nextPage(): void {
     if (this.currentPage < this.getTotalPages()) {
       this.goToPage(this.currentPage + 1);
     }
   }
-  
+
   public getTotalPages(): number {
     return Math.ceil(this.totalItems / this.pageSize);
   }
-  
+
   public getPageNumbers(): number[] {
     const totalPages = this.getTotalPages();
     if (totalPages <= 5) {
       return Array.from({ length: totalPages }, (_, i) => i + 1);
     }
-    
+
     // Show 5 page numbers with current page in the middle when possible
     if (this.currentPage <= 3) {
       return [1, 2, 3, 4, 5];
@@ -154,14 +154,14 @@ export class UsersListComponent implements OnInit {
 
   onDelete(user: User) {
     if (!window.confirm('Are you sure you want to delete this user?')) return;
-    
+
     // Show loading state
     const actionBtn = document.getElementById(`delete-btn-${user.id}`);
     if (actionBtn) {
       actionBtn.innerHTML = 'Deleting...';
       actionBtn.setAttribute('disabled', 'true');
     }
-    
+
     this.userService.deleteUser(user.id).subscribe({
       next: () => {
         window.alert('User deleted successfully.');
@@ -169,13 +169,13 @@ export class UsersListComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error deleting user:', err);
-        
+
         // Reset button state
         if (actionBtn) {
           actionBtn.innerHTML = 'Delete';
           actionBtn.removeAttribute('disabled');
         }
-        
+
         // Show more detailed error message
         let errorMessage = 'Failed to delete user.';
         if (err.error && typeof err.error === 'string') {
@@ -185,7 +185,7 @@ export class UsersListComponent implements OnInit {
         } else if (err.status === 500) {
           errorMessage = 'Server error while deleting user. The user may have related records.';
         }
-        
+
         window.alert(errorMessage);
       }
     });

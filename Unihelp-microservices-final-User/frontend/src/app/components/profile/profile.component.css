@@ -1098,3 +1098,256 @@
     max-height: 500px;
   }
 }
+
+/* Friends Tab Styling */
+.feature-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.tab-btn {
+  background-color: #f1f1f1;
+  border: none;
+  color: #555;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 20px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tab-btn:hover {
+  background-color: #e3e3e3;
+}
+
+.tab-btn.active {
+  background-color: #ff6200;
+  color: white;
+}
+
+.badge-notification {
+  background-color: #f44336;
+  color: white;
+  font-size: 12px;
+  border-radius: 50%;
+  padding: 2px 6px;
+  margin-left: 6px;
+}
+
+/* Friend list styling */
+.skill-match-action-btn.message {
+  background-color: #2196F3;
+  color: white;
+}
+
+.skill-match-action-btn.message:hover {
+  background-color: #0c7cd5;
+}
+
+.skill-match-action-btn.accept {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.skill-match-action-btn.accept:hover {
+  background-color: #388E3C;
+}
+
+.skill-match-action-btn.deny {
+  background-color: #F44336;
+  color: white;
+}
+
+.skill-match-action-btn.deny:hover {
+  background-color: #D32F2F;
+}
+
+/* Chat Popup Styles */
+.chat-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Make sure it's above everything else */
+  backdrop-filter: blur(4px);
+  animation: fadeOverlay 0.25s ease-out;
+}
+
+.chat-popup {
+  position: relative;
+  width: 90%;
+  max-width: 450px;
+  height: 70vh;
+  max-height: 550px;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25), 0 5px 12px rgba(255, 98, 0, 0.2);
+  animation: popupScale 0.25s ease-out;
+  transform-origin: center;
+}
+
+.close-popup-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  font-size: 22px;
+  line-height: 22px;
+  cursor: pointer;
+  color: white;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.close-popup-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+/* Chat popup animations */
+@keyframes fadeOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popupScale {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* Skill Matches Styles */
+.skill-matches {
+  margin-top: 10px;
+}
+
+.skill-match-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.skill-match-item:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.skill-match-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.skill-match-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.skill-match-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.skill-match-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.skill-match-details {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.match-score {
+  background: linear-gradient(135deg, #4CAF50, #2E7D32);
+  color: white;
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.score-value {
+  font-weight: bold;
+}
+
+.skill-match-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: 10px;
+}
+
+.skill-match-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  border: none;
+  color: #4a5568;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.skill-match-action-btn:hover {
+  background: #cbd5e0;
+}
+
+.skill-match-action-btn.add {
+  background: #4299e1;
+  color: white;
+}
+
+.skill-match-action-btn.add:hover {
+  background: #3182ce;
+}
+
+.skill-match-action-btn.view {
+  background: #a0aec0;
+  color: white;
+}
+
+.skill-match-action-btn.view:hover {
+  background: #718096;
+}

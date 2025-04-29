@@ -138,6 +138,21 @@ public class AuthController {
         return ResponseEntity.ok("User logged out successfully.");
     }
 
+    /**
+     * Get the current authenticated user's profile
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<User> getCurrentUserProfile() {
+        // Get the authenticated user's email
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return ResponseEntity.ok(user);
+    }
+
     @GetMapping("/admin/users")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userRepository.findAll();
@@ -149,6 +164,18 @@ public class AuthController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         System.out.println("User fetched: " + user);
+        return ResponseEntity.ok(user);
+    }
+
+    /**
+     * Get user by ID for public/messaging access
+     * This endpoint is used by the messaging feature to get user details
+     */
+    @GetMapping("/users/{id}")
+    public ResponseEntity<User> getUserForMessaging(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        System.out.println("User fetched for messaging: " + user.getId());
         return ResponseEntity.ok(user);
     }
 
@@ -196,7 +223,7 @@ public class AuthController {
         try {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("User not found"));
-            
+
             // The cascading delete will automatically handle UserActivity records
             userRepository.delete(user);
             return ResponseEntity.ok("User deleted successfully.");
@@ -225,7 +252,7 @@ public class AuthController {
 
         // Allow update if the authenticated user is updating their own profile or is an admin
         if (!user.getEmail().equals(authenticatedEmail) &&
-            authentication.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                authentication.getAuthorities().stream().noneMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("You are not authorized to update this profile.");
         }
 
@@ -275,37 +302,37 @@ public class AuthController {
         tokenRepository.delete(resetToken);
         return ResponseEntity.ok("Password successfully reset!");
     }
-    
+
     @PostMapping("/google-login")
     public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginRequest request) {
         System.out.println("AuthController: Received Google login request");
-        
+
         if (request == null || request.getToken() == null || request.getToken().isEmpty()) {
             System.err.println("AuthController: Google login request contains null or empty token");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Google token is required");
         }
-        
+
         try {
             System.out.println("AuthController: Processing Google login with token length: " + request.getToken().length());
             Map<String, Object> authResult = googleAuthService.authenticateGoogleUser(request.getToken());
-            
+
             // Get the JWT token
             String token = (String) authResult.get("token");
             if (token == null || token.isEmpty()) {
                 System.err.println("AuthController: No JWT token generated from Google authentication");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to generate authentication token");
             }
-            
+
             // Get user details from token
             String email = jwtUtils.extractUsername(token);
             System.out.println("AuthController: Extracted email from token: " + email);
-            
+
             User user = userRepository.findByEmail(email)
                     .orElseThrow(() -> {
                         System.err.println("AuthController: User not found for email: " + email);
                         return new RuntimeException("User not found");
                     });
-            
+
             // Create response object
             LoginResponse response = new LoginResponse();
             response.setToken(token);
@@ -313,16 +340,16 @@ public class AuthController {
             response.setId(user.getId());
             response.setEmail(user.getEmail());
             response.setRole(user.getRole().name());
-            
+
             // Add profile completion status
             boolean profileCompleted = (boolean) authResult.get("profileCompleted");
             response.setProfileCompleted(profileCompleted);
-            
+
             // Add isNewUser flag if present
             if (authResult.containsKey("isNewUser")) {
                 response.setNewUser((boolean) authResult.get("isNewUser"));
             }
-            
+
             System.out.println("AuthController: Google login successful for user: " + email);
             return ResponseEntity.ok(response);
         } catch (GeneralSecurityException | IOException e) {
@@ -335,7 +362,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error during Google authentication: " + e.getMessage());
         }
     }
-    
+
     @PostMapping("/complete-profile")
     public ResponseEntity<?> completeProfile(
             @RequestParam("userId") Long userId,
@@ -346,7 +373,7 @@ public class AuthController {
     ) {
         try {
             User updatedUser = googleAuthService.completeUserProfile(userId, bio, skills, role, profileImage);
-            
+
             // Create response object
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
@@ -354,7 +381,7 @@ public class AuthController {
             response.put("userId", updatedUser.getId());
             response.put("email", updatedUser.getEmail());
             response.put("role", updatedUser.getRole().name());
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -8,7 +8,7 @@
       <div *ngIf="user" class="profile-content">
       <div class="modern-profile-header">
         <div class="modern-profile-image">
-          <img [src]="getProfileImageUrl(user.profileImage)" alt="Profile Image" onerror="this.src='assets/img/default-user.png';" />
+          <img [src]="getProfileImageUrl(user.profileImage)" alt="Profile Image" />
           <span class="modern-status-dot" [class.active]="!user.banned" title="Account status"></span>
         </div>
         <div class="modern-profile-info">
@@ -152,6 +152,11 @@
           </div>
         </div>
       </div>
+
+      <!-- Direct Chat Window -->
+      <div *ngIf="activeFeature === 'messages' && currentConversationUserId">
+        <app-messaging [recipientId]="currentConversationUserId"></app-messaging>
+      </div>
       
       <!-- Notifications Content -->
       <div class="feature-content-card" *ngIf="activeFeature === 'notifications'">
@@ -188,8 +193,9 @@
                 }"></i>
               </div>
               <div class="notification-content">
-                <p class="notification-text">{{ notification.message }}</p>
-                <span class="notification-time">{{ notification.timestamp | date:'short' }}</span>
+                <p class="notification-text">{{ notification.content }}</p>
+<span class="notification-time">{{ notification.createdAt | date:'short' }}</span>
+
               </div>
               <div class="notification-actions">
                 <button class="notification-btn mark-read" *ngIf="!notification.read" (click)="markNotificationAsRead(notification.id)" title="Mark as read">
@@ -208,16 +214,25 @@
       <div class="feature-content-card" *ngIf="activeFeature === 'friends'">
         <div class="feature-header">
           <h2>Friends</h2>
-          <span class="badge-count" *ngIf="pendingFriendRequestsCount > 0">{{pendingFriendRequestsCount}} requests</span>
-        </div>
-        <div class="feature-body">
-          <div class="friend-tabs">
-            <button class="friend-tab" [class.active]="activeFriendTab === 'friends'" (click)="activeFriendTab = 'friends'">My Friends</button>
-            <button class="friend-tab" [class.active]="activeFriendTab === 'requests'" (click)="activeFriendTab = 'requests'">Requests <span *ngIf="pendingFriendRequestsCount > 0">({{pendingFriendRequestsCount}})</span></button>
-            <button class="friend-tab" [class.active]="activeFriendTab === 'suggestions'" (click)="activeFriendTab = 'suggestions'">Suggestions</button>
+          <div class="feature-tabs">
+            <button class="tab-btn" [class.active]="activeFriendTab === 'friends'" (click)="activeFriendTab = 'friends'">
+              Friends
+            </button>
+            <button class="tab-btn" [class.active]="activeFriendTab === 'requests'" (click)="activeFriendTab = 'requests'">
+              Requests
+              <span class="badge-notification" *ngIf="pendingFriendRequestsCount > 0">{{pendingFriendRequestsCount}}</span>
+            </button>
+            <button class="tab-btn" [class.active]="activeFriendTab === 'suggestions'" (click)="activeFriendTab = 'suggestions'">
+              Suggestions
+            </button>
+            <button class="tab-btn" [class.active]="activeFriendTab === 'skill-matches'" (click)="activeFriendTab = 'skill-matches'">
+              Skill Matches
+            </button>
           </div>
-          
-          <!-- Friends List -->
+        </div>
+
+        <div class="feature-body">
+          <!-- Friends list -->
           <div class="friends-list" *ngIf="activeFriendTab === 'friends'">
             <!-- Loading state -->
             <div *ngIf="isLoadingFriends" class="loading-indicator">
@@ -235,20 +250,27 @@
             </div>
             
             <!-- Friends list with real data -->
-            <div class="friend-item" *ngFor="let friend of friends">
-              <div class="friend-avatar">
-                <img [src]="getProfileImageUrl(friend.profileImage)" alt="{{ friend.firstName }} {{ friend.lastName }}" onerror="this.src='assets/img/default-user.png';">
+            <div class="skill-match-item" *ngFor="let friend of friends">
+              <div class="skill-match-avatar">
+                <img [src]="getProfileImageUrl(friend.profileImage)" alt="{{ friend.firstName }} {{ friend.lastName }}">
                 <span class="friend-status-indicator" [class.online]="friend.online"></span>
               </div>
-              <div class="friend-content">
-                <h4 class="friend-name">{{ friend.firstName }} {{ friend.lastName }}</h4>
-                <p class="friend-status">{{ friend.online ? 'Online' : 'Offline' }}</p>
+              <div class="skill-match-content">
+                <h4 class="skill-match-name">{{ friend.firstName }} {{ friend.lastName }}</h4>
+                <div class="skill-match-details">
+                  <div class="skill-tags" *ngIf="friend.skills">
+                    <ng-container *ngFor="let skill of getSplitSkills(friend.skills || '')">
+                      <span class="modern-skill-tag">{{ skill }}</span>
+                    </ng-container>
+                  </div>
+                  <span class="friend-status">{{ friend.online ? 'Online' : 'Offline' }}</span>
+                </div>
               </div>
-              <div class="friend-actions">
-                <button class="friend-action-btn" title="Message" (click)="openConversation(friend.id)">
+              <div class="skill-match-actions">
+                <button class="skill-match-action-btn message" title="Message" (click)="openChatPopup(friend.id)">
                   <i class="fa fa-envelope-o"></i>
                 </button>
-                <button class="friend-action-btn" title="Remove" (click)="removeFriend(friend.id)">
+                <button class="skill-match-action-btn view" title="Remove" (click)="removeFriend(friend.id)">
                   <i class="fa fa-user-times"></i>
                 </button>
               </div>
@@ -273,19 +295,22 @@
             </div>
             
             <!-- Friend requests with real data -->
-            <div class="request-item" *ngFor="let request of friendRequests">
-              <div class="request-avatar">
-                <img [src]="getProfileImageUrl(request.profileImage)" alt="{{ request.firstName }} {{ request.lastName }}" onerror="this.src='assets/img/default-user.png';">
+            <div class="skill-match-item" *ngFor="let request of friendRequests">
+              <div class="skill-match-avatar">
+                <img [src]="getProfileImageUrl(request.profileImage)" alt="{{ request.firstName }} {{ request.lastName }}">
               </div>
-              <div class="request-content">
-                <h4 class="request-name">{{ request.firstName }} {{ request.lastName }}</h4>
-                <p class="request-mutual">{{ request.mutualFriends || 0 }} mutual friends</p>
+              <div class="skill-match-content">
+                <h4 class="skill-match-name">{{ request.firstName }} {{ request.lastName }}</h4>
+                <div class="skill-match-details">
+                  <span class="request-mutual">{{ request.mutualFriends || 0 }} mutual friends</span>
+                  <span class="request-time" *ngIf="request.createdAt">{{ request.createdAt | date:'short' }}</span>
+                </div>
               </div>
-              <div class="request-actions">
-                <button class="request-action-btn accept" (click)="acceptFriendRequest(request.id)">
+              <div class="skill-match-actions">
+                <button class="skill-match-action-btn accept" (click)="acceptFriendRequest(request.id)">
                   <i class="fa fa-check"></i>
                 </button>
-                <button class="request-action-btn decline" (click)="declineFriendRequest(request.id)">
+                <button class="skill-match-action-btn deny" (click)="declineFriendRequest(request.id)">
                   <i class="fa fa-times"></i>
                 </button>
               </div>
@@ -310,18 +335,75 @@
             </div>
             
             <!-- Friend suggestions with real data -->
-            <div class="suggestion-item" *ngFor="let suggestion of friendSuggestions">
-              <div class="suggestion-avatar">
-                <img [src]="getProfileImageUrl(suggestion.profileImage)" alt="{{ suggestion.firstName }} {{ suggestion.lastName }}" onerror="this.src='assets/img/default-user.png';">
+            <div class="skill-match-item" *ngFor="let suggestion of friendSuggestions">
+              <div class="skill-match-avatar">
+                <img [src]="getProfileImageUrl(suggestion.profileImage)" alt="{{ suggestion.firstName }} {{ suggestion.lastName }}">
               </div>
-              <div class="suggestion-content">
-                <h4 class="suggestion-name">{{ suggestion.firstName }} {{ suggestion.lastName }}</h4>
-                <p class="suggestion-mutual">{{ suggestion.mutualFriends || 0 }} mutual friends</p>
-                <p class="suggestion-info" *ngIf="suggestion.department">{{ suggestion.department }}</p>
+              <div class="skill-match-content">
+                <h4 class="skill-match-name">{{ suggestion.firstName }} {{ suggestion.lastName }}</h4>
+                <div class="skill-match-details">
+                  <span class="suggestion-mutual">{{ suggestion.mutualFriends || 0 }} mutual friends</span>
+                  <p class="suggestion-info" *ngIf="suggestion.department">{{ suggestion.department }}</p>
+                  <div class="skill-tags" *ngIf="suggestion.skills">
+                    <ng-container *ngFor="let skill of getSplitSkills(suggestion.skills || '')">
+                      <span class="modern-skill-tag">{{ skill }}</span>
+                    </ng-container>
+                  </div>
+                </div>
               </div>
-              <div class="suggestion-actions">
-                <button class="suggestion-action-btn add" (click)="sendFriendRequest(suggestion.id)">
+              <div class="skill-match-actions">
+                <button class="skill-match-action-btn accept" (click)="sendFriendRequest(suggestion.id)">
                   <i class="fa fa-user-plus"></i>
+                </button>
+                <button class="skill-match-action-btn view" (click)="viewProfile(suggestion.id)">
+                  <i class="fa fa-user"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Skill Matches Tab -->
+          <div class="skill-matches" *ngIf="activeFriendTab === 'skill-matches'">
+            <!-- Loading state -->
+            <div *ngIf="isLoadingSkillMatches" class="loading-indicator">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p>Finding people with similar skills...</p>
+            </div>
+            
+            <!-- Empty state -->
+            <div *ngIf="skillMatches.length === 0 && !isLoadingSkillMatches" class="empty-state-content">
+              <i class="fa fa-lightbulb-o"></i>
+              <h3>No Skill Matches</h3>
+              <p>Add more skills to your profile to find people with similar interests</p>
+            </div>
+            
+            <!-- Skill matches with real data -->
+            <div class="skill-match-item" *ngFor="let match of skillMatches">
+              <div class="skill-match-avatar">
+                <img [src]="getProfileImageUrl(match.profileImage)" alt="{{ match.firstName }} {{ match.lastName }}">
+              </div>
+              <div class="skill-match-content">
+                <h4 class="skill-match-name">{{ match.firstName }} {{ match.lastName }}</h4>
+                <div class="skill-match-details">
+                  <div class="skill-tags">
+                    <ng-container *ngFor="let skill of getSplitSkills(match.skills || '')">
+                      <span class="modern-skill-tag">{{ skill }}</span>
+                    </ng-container>
+                  </div>
+                  <div class="match-score" *ngIf="match.matchScore">
+                    <span class="score-value">{{ match.matchScore }}%</span>
+                    <span class="score-label">match</span>
+                  </div>
+                </div>
+              </div>
+              <div class="skill-match-actions">
+                <button class="skill-match-action-btn accept" (click)="sendFriendRequest(match.id)">
+                  <i class="fa fa-user-plus"></i>
+                </button>
+                <button class="skill-match-action-btn view" (click)="viewProfile(match.id)">
+                  <i class="fa fa-user"></i>
                 </button>
               </div>
             </div>
@@ -338,5 +420,13 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Messaging Popup Modal -->
+<div *ngIf="isChatPopupOpen && chatPopupRecipientId" class="chat-popup-overlay">
+  <div class="chat-popup">
+    <button class="close-popup-btn" (click)="closeChatPopup()">×</button>
+    <app-messaging [recipientId]="chatPopupRecipientId" [isPopup]="true"></app-messaging>
   </div>
 </div>

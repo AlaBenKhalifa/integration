@@ -31,7 +31,7 @@ public class WebSocketController {
         Long senderId = ((Number) payload.get("senderId")).longValue();
         Long recipientId = ((Number) payload.get("recipientId")).longValue();
         String content = (String) payload.get("content");
-        
+
         // Verify that the authenticated user is the sender
         Long currentUserId = getCurrentUserId();
         if (!currentUserId.equals(senderId)) {
@@ -43,17 +43,17 @@ public class WebSocketController {
             );
             return;
         }
-        
+
         // Process and save the message
         MessageDTO message = messageService.sendMessage(senderId, recipientId, content);
-        
+
         // Send to the specific recipient
         messagingTemplate.convertAndSendToUser(
                 recipientId.toString(),
                 "/queue/messages",
                 message
         );
-        
+
         // Send confirmation back to sender
         messagingTemplate.convertAndSendToUser(
                 senderId.toString(),
@@ -61,7 +61,7 @@ public class WebSocketController {
                 message
         );
     }
-    
+
     /**
      * Handle read receipt notifications
      * Users send read receipts to /app/chat.markAsRead
@@ -70,10 +70,10 @@ public class WebSocketController {
     public void markMessageAsRead(@Payload Map<String, Object> payload) {
         Long messageId = ((Number) payload.get("messageId")).longValue();
         Long userId = getCurrentUserId();
-        
+
         // Mark the message as read
         MessageDTO message = messageService.markMessageAsRead(messageId, userId);
-        
+
         // Notify the original sender that their message was read
         messagingTemplate.convertAndSendToUser(
                 message.getSender().getId().toString(),
@@ -81,14 +81,14 @@ public class WebSocketController {
                 Map.of("messageId", messageId, "readAt", message.getSentAt())
         );
     }
-    
+
     /**
      * Get the current user's ID from the security context
      */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
-        
+
         return friendshipService.getUserIdByEmail(userEmail);
     }
 }

@@ -40,9 +40,15 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/reset-password").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/nlp/**").permitAll()
+                        .requestMatchers("/api/auth/completed").permitAll()
+                        .requestMatchers("/api/users/**").authenticated()
+                        .requestMatchers("/api/messages/**").authenticated()
+                        .requestMatchers("/api/friendships/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/friendships/**").authenticated()
                         .requestMatchers( "/actuator/**").permitAll()
                         .requestMatchers( "/v3/api-docs/**").permitAll()
                         .requestMatchers( " /swagger-ui/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
 
 
                         .anyRequest().authenticated()

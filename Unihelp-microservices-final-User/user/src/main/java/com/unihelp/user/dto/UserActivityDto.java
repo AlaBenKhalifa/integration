@@ -35,7 +35,7 @@ public class UserActivityDto {
     private String sessionId;
     private boolean successful;
     private String failureReason;
-    
+
     public static UserActivityDto fromEntity(UserActivity entity) {
         return UserActivityDto.builder()
                 .id(entity.getId())

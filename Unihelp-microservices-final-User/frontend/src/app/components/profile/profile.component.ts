@@ -8,6 +8,7 @@ import { NlpService, NlpAnalysisResult } from '../../services/nlp.service';
 import { MessageService } from '../../services/message.service';
 import { NotificationService } from '../../services/notification.service';
 import { FriendshipService } from '../../services/friendship.service';
+import { SkillMatchingService } from '../../services/skill-matching.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -22,35 +23,50 @@ export class ProfileComponent implements OnInit, OnDestroy {
   errorMessage: string | null = null;
   successMessage: string | null = null;
   skillsDisplay: string = 'No skills listed';
-  
+
   // NLP analysis related properties
   showBioAnalysis = false;
   nlpAnalysisResult: NlpAnalysisResult | null = null;
   isAnalysisLoading = false;
-  
+
   // Communication counters
   unreadMessagesCount: number = 0;
   unreadNotificationsCount: number = 0;
   pendingFriendRequestsCount: number = 0;
   private subscriptions: Subscription[] = [];
-  
+
   // Messages related properties
   conversations: any[] = [];
   isLoadingConversations: boolean = false;
   currentConversationUserId: number | null = null;
-  
+
+  // Friends related properties
+  friends: any[] = [];
+  friendRequests: any[] = [];
+  friendSuggestions: any[] = [];
+  skillMatches: any[] = [];
+  isLoadingFriends: boolean = false;
+  isLoadingRequests: boolean = false;
+  isLoadingSuggestions: boolean = false;
+  isLoadingSkillMatches: boolean = false;
+
   // Feature management
   activeFeature: string | null = null;
   activeFriendTab: string = 'friends'; // Default to friends tab
 
+  // Chat popup state
+  isChatPopupOpen: boolean = false;
+  chatPopupRecipientId: number | null = null;
+
   constructor(
-    private authService: AuthService, 
-    private fb: FormBuilder, 
+    private authService: AuthService,
+    private fb: FormBuilder,
     private router: Router,
     private nlpService: NlpService,
     private messageService: MessageService,
     private notificationService: NotificationService,
-    private friendshipService: FriendshipService
+    private friendshipService: FriendshipService,
+    private skillMatchingService: SkillMatchingService
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required]],
@@ -64,8 +80,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadUserProfile();
     this.loadCommunicationCounts();
+
+    // Detect query params for tab and activate chat/messages if needed
+    this.router.routerState.root.queryParams.subscribe(params => {
+      if (params['tab'] === 'chat') {
+        this.activeFeature = 'messages';
+        // If a userId is present in the route, open a chat with that user
+        const routeSegments = this.router.url.split('/');
+        const profileId = routeSegments[routeSegments.indexOf('profile') + 1];
+        if (profileId && !isNaN(Number(profileId))) {
+          this.currentConversationUserId = Number(profileId);
+        }
+      }
+    });
   }
-  
+
   // Subscribe to unread counts
   // Subscribe to unread counts
   loadCommunicationCounts(): void {
@@ -74,36 +103,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.unreadMessagesCount = response.count;
     });
     this.subscriptions.push(msgSubscription);
-    
+
     // Subscribe to new messages
     const newMsgSubscription = this.messageService.onNewMessages().subscribe(message => {
-      // If this is from our current conversation, add it to the list
       if (this.currentConversationUserId === message.senderId) {
         // Add message to active conversation when implemented
       }
-      // Update conversation list if needed
       this.updateConversationWithNewMessage(message);
-      // Update unread count
       this.unreadMessagesCount++;
     });
     this.subscriptions.push(newMsgSubscription);
-    
+
     // Get unread notifications count
     const notifSubscription = this.notificationService.getUnreadCount().subscribe(response => {
       this.unreadNotificationsCount = response.count;
     });
     this.subscriptions.push(notifSubscription);
-    
+
     // Get pending friend requests count
     const friendSubscription = this.friendshipService.getPendingRequestsCount().subscribe(response => {
       this.pendingFriendRequestsCount = response.count;
     });
     this.subscriptions.push(friendSubscription);
-    
-    // Connect to message websocket if we have a user ID
-    if (this.user?.id) {
-      this.messageService.connect(this.user.id);
-    }
+
+    // ✅ Correction ici : appel sans argument
+    this.messageService.connect();
   }
 
   loadUserProfile(): void {
@@ -111,15 +135,15 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (userData) {
       const { id } = JSON.parse(userData);
       console.log('Loading profile for user ID:', id);
-      
+
       this.authService.getUserById(id).subscribe({
         next: (user: User) => {
           console.log('Profile loaded:', user); // Debug
           console.log('Skills loaded:', user.skills); // Debug
-          
+
           // Store the user data
           this.user = user;
-          
+
           // Update form with fresh data
           this.profileForm.patchValue({
             firstName: user.firstName,
@@ -128,7 +152,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             bio: user.bio || '',
             skills: user.skills || '', // Treat as string
           });
-          
+
           // Update skills display
           this.updateSkillsDisplay();
         },
@@ -170,24 +194,24 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
       // Store a copy of the old form values in case we need to roll back visually
       const oldValues = { ...this.profileForm.value };
-      
+
       // Optimistically update the UI immediately
       this.isEditing = false;
-      
+
       // First, send the actual update to backend
       // Ensure user still exists before sending update
       if (!this.user) return;
-      
+
       this.authService.updateOwnProfile(this.user.id, updatedUser)
         .subscribe({
           next: (response) => {
             console.log('Profile updated successfully:', response);
             // Only update UI *after* successful server update
             this.isEditing = false;
-            
+
             // Force reload profile data after update confirmed
             this.loadUserProfile();
-            
+
             // Now show success message
             Swal.fire({
               icon: 'success',
@@ -200,19 +224,19 @@ export class ProfileComponent implements OnInit, OnDestroy {
           },
           error: (error: HttpErrorResponse) => {
             console.error('Profile update error response:', error);
-            
+
             // Check if this might actually be a successful update despite the error response
             if (error.status >= 200 && error.status < 300) {
               console.log('Treating error response as success based on status code:', error.status);
-              
+
               // Even on "error" with 2xx status, update the UI
               this.isEditing = false;
-              
+
               // Force reload profile data
               setTimeout(() => {
                 this.loadUserProfile();
               }, 500); // Slightly longer delay to allow server processing
-              
+
               Swal.fire({
                 icon: 'success',
                 title: 'Profile updated!',
@@ -222,7 +246,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
               });
               return;
             }
-            
+
             // This is a genuine error that needs attention
             if (error.status < 200 || error.status >= 300) {
               let msg = 'An error occurred while updating your profile.';
@@ -231,7 +255,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
               } else if (error.status && error.status !== 200) {
                 msg = error.message;
               }
-              
+
               // Show error message only for actual errors
               Swal.fire({
                 icon: 'error',
@@ -239,12 +263,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
                 text: msg
               });
             }
-            
+
             // Still reload to ensure UI is in sync with server
             setTimeout(() => {
               this.loadUserProfile();
             }, 1000);
-            
+
             this.errorMessage = null;
           }
         });
@@ -252,22 +276,37 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   getProfileImageUrl(profileImage?: string | null): string {
-    if (!profileImage) {
-      return 'assets/img/default-user.png';
+    // Delegate to MessageService for consistent image handling throughout the app
+    // If a full user object is passed, use it directly
+    if (profileImage && typeof profileImage === 'object') {
+      return this.messageService.getProfileImageUrl(profileImage);
     }
-    
-    // Check if the image is already a URL (starts with http or assets/)
-    if (profileImage.startsWith('http') || profileImage.startsWith('assets/')) {
-      return profileImage;
+
+    // Otherwise pass just the profileImage string/url or null
+    return this.messageService.getProfileImageUrl({ profileImage: profileImage });
+  }
+
+  // Helper method to handle skills and limit to 4 items
+  getSplitSkills(skills: string | string[]): string[] {
+    if (!skills) {
+      return [];
     }
-    
-    // Handle base64 image data - add the data URL prefix if not already present
-    if (!profileImage.startsWith('data:')) {
-      return `data:image/jpeg;base64,${profileImage}`;
+
+    // If skills is already an array, use it directly
+    if (Array.isArray(skills)) {
+      return skills.slice(0, 4);
     }
-    
-    // Image already has data URL prefix
-    return profileImage;
+
+    // Otherwise, split by comma and trim each skill
+    const skillsArray = skills.split(',').map(skill => skill.trim());
+
+    // Return only first 4 skills for display
+    return skillsArray.slice(0, 4);
+  }
+
+  // Navigate to user profile
+  viewProfile(userId: number): void {
+    this.router.navigate(['/profile', userId]);
   }
 
   disconnect(): void {
@@ -291,21 +330,21 @@ export class ProfileComponent implements OnInit, OnDestroy {
       this.skillsDisplay = 'No skills listed';
     }
   }
-  
+
   // Toggle bio analysis section visibility
   toggleBioAnalysis(): void {
     this.showBioAnalysis = !this.showBioAnalysis;
-    
+
     // Load analysis results if turning on and we don't have results yet
     if (this.showBioAnalysis && !this.nlpAnalysisResult && this.user) {
       this.fetchBioAnalysis();
     }
   }
-  
+
   // Fetch bio analysis from the backend
   fetchBioAnalysis(): void {
     if (!this.user?.id) return;
-    
+
     this.isAnalysisLoading = true;
     this.nlpService.getUserAnalysis(this.user.id).subscribe({
       next: (result) => {
@@ -318,14 +357,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   // Handle when analysis is completed
   onAnalysisComplete(result: NlpAnalysisResult): void {
     this.nlpAnalysisResult = result;
-    
+
     // If we found skills in the analysis, suggest them (regardless of whether user already has skills)
     if (result.extractedSkills && result.extractedSkills.length > 0) {
-      
+
       Swal.fire({
         title: 'Skills Detected!',
         text: `We detected some skills in your bio: ${result.extractedSkills.join(', ')}. Would you like to add these to your profile?`,
@@ -336,14 +375,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }).then((result) => {
         if (result.isConfirmed && this.user) {
           // Get current skills to avoid duplicates
-          const currentSkills = this.user.skills ? 
-            this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') : 
+          const currentSkills = this.user.skills ?
+            this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') :
             [];
-            
+
           // Get new skills from NLP that don't already exist
           const newSkills = this.nlpAnalysisResult?.extractedSkills
             .filter(skill => !currentSkills.includes(skill)) || [];
-            
+
           if (newSkills.length === 0) {
             Swal.fire({
               icon: 'info',
@@ -354,11 +393,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
             });
             return;
           }
-          
+
           // Combine existing and new skills
           const allSkills = [...currentSkills, ...newSkills];
           const updatedSkills = allSkills.join(', ');
-          
+
           // Update the form if in edit mode
           if (this.isEditing) {
             this.profileForm.patchValue({ skills: updatedSkills });
@@ -369,7 +408,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
               timer: 1800,
               showConfirmButton: false
             });
-          } 
+          }
           // Otherwise update the user object directly
           else if (this.user) {
             const updatedUser = { ...this.user, skills: updatedSkills };
@@ -386,7 +425,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
               },
               error: (error) => {
                 console.error('Error updating skills:', error);
-                
+
                 // Check if the error might be misleading (successful operation reported as error)
                 if (error.status >= 200 && error.status < 300) {
                   // Still consider it successful, reload profile and show success message
@@ -400,7 +439,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
                   });
                   return;
                 }
-                
+
                 Swal.fire({
                   icon: 'error',
                   title: 'Update Failed',
@@ -415,22 +454,22 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   // Add a single skill to the user's profile
   addSkillToProfile(skill: string): void {
     if (!this.user) {
       console.error('Cannot add skill: User is not loaded');
       return;
     }
-    
+
     console.log('Adding skill to profile:', skill);
-    
+
     try {
       // Get current skills as array
-      const currentSkills = this.user.skills ? 
-        this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') : 
+      const currentSkills = this.user.skills ?
+        this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') :
         [];
-      
+
       // Check if skill already exists
       if (currentSkills.includes(skill)) {
         Swal.fire({
@@ -444,13 +483,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
         });
         return;
       }
-      
+
       // Add the new skill
       currentSkills.push(skill);
       const updatedSkills = currentSkills.join(', ');
-      
+
       console.log('New skills string:', updatedSkills);
-      
+
       // Update the form if in edit mode
       if (this.isEditing) {
         this.profileForm.patchValue({ skills: updatedSkills });
@@ -477,14 +516,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
           bio: this.user.bio || '',
           role: this.user.role
         };
-        
+
         // Conditionally add profile image if it exists
         if (this.user.profileImage) {
           updatedUser.profileImage = this.user.profileImage;
         }
-        
+
         console.log('Updating user profile with new skills:', updatedUser);
-        
+
         // Show loading indicator
         const loadingToast = Swal.mixin({
           toast: true,
@@ -494,27 +533,27 @@ export class ProfileComponent implements OnInit, OnDestroy {
             Swal.showLoading();
           }
         });
-        
+
         loadingToast.fire({
           title: 'Adding skill...',
         });
-        
+
         // First, update the local user object optimistically
         this.user.skills = updatedSkills;
         this.updateSkillsDisplay();
-        
+
         // Now send the update to the backend
         this.authService.updateOwnProfile(this.user.id, updatedUser)
           .subscribe({
             next: (response) => {
               console.log('Skill added successfully:', response);
-              
+
               // Close loading toast
               Swal.close();
-              
+
               // Reload the entire profile to ensure consistency
               this.loadUserProfile();
-              
+
               // Show success message
               Swal.fire({
                 icon: 'success',
@@ -528,17 +567,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
             },
             error: (error) => {
               console.error('Error updating skills:', error);
-              
+
               // Close loading toast
               Swal.close();
-              
+
               // Regardless of the error, still treat it as success
               // The database update likely worked, the error is just in the response handling
               console.log('Silently treating error as success, error code:', error.status);
-              
+
               // Reload profile data
               this.loadUserProfile();
-              
+
               // Show success message without waiting
               Swal.fire({
                 icon: 'success',
@@ -565,7 +604,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   // Clean up resources when component is destroyed
   ngOnDestroy(): void {
     // Clean up subscriptions
@@ -573,29 +612,31 @@ export class ProfileComponent implements OnInit, OnDestroy {
     // Disconnect from WebSocket when component is destroyed
     this.messageService.disconnect();
   }
-  
+
   // Toggle between different features
   toggleFeature(feature: string): void {
     if (this.activeFeature === feature) {
       this.activeFeature = null;
     } else {
       this.activeFeature = feature;
-      
-      // Load data when opening each feature
+
+      // Reset current conversation when leaving messages tab
+      if (feature !== 'messages') {
+        this.currentConversationUserId = null;
+      }
+
+      // Load corresponding feature content
       if (feature === 'messages') {
         this.loadConversations();
       } else if (feature === 'notifications') {
         this.loadNotifications();
         if (this.unreadNotificationsCount > 0) {
-          // Mark notifications as read - optimistic update
           const oldCount = this.unreadNotificationsCount;
           this.unreadNotificationsCount = 0;
-          
-          // Actual API call with error handling
+
           this.notificationService.markAllAsRead().subscribe({
             error: (error) => {
               console.error('Error marking notifications as read:', error);
-              // Restore count if API call fails
               this.unreadNotificationsCount = oldCount;
             }
           });
@@ -604,16 +645,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
         this.loadFriends();
         this.loadFriendRequests();
         this.loadFriendSuggestions();
+        this.loadSkillMatches();
       }
     }
   }
-  
+
+
   // Load conversations from the API
   loadConversations(): void {
     if (!this.user) return;
-    
+
     this.isLoadingConversations = true;
-    
+
     this.messageService.getConversations().subscribe({
       next: (data) => {
         // Process conversation data and include additional info
@@ -623,7 +666,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error loading conversations:', error);
         this.isLoadingConversations = false;
-        
+
         // Load fallback data for demo if needed
         if (error.status === 404 || error.status === 0) {
           this.loadFallbackConversations();
@@ -631,13 +674,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   // Process conversation data from API
   processConversationData(data: any[]): any[] {
     if (!data || data.length === 0) {
       return [];
     }
-    
+
     // Map API data to our conversation model
     return data.map(conv => {
       return {
@@ -650,10 +693,10 @@ export class ProfileComponent implements OnInit, OnDestroy {
         unreadCount: conv.unreadCount || 0,
         online: conv.online || Math.random() > 0.5 // Random for demo
       };
-    }).sort((a, b) => 
+    }).sort((a, b) =>
       b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
   }
-  
+
   // Load fallback conversation data for demo
   loadFallbackConversations(): void {
     // Create some sample data for the UI
@@ -665,7 +708,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       'The assignment is due tomorrow!',
       'Are you going to the study group?'
     ];
-    
+
     this.conversations = names.map((name, i) => {
       const [firstName, lastName] = name.split(' ');
       return {
@@ -680,28 +723,28 @@ export class ProfileComponent implements OnInit, OnDestroy {
       };
     });
   }
-  
+
   // Update conversation with new message
   updateConversationWithNewMessage(message: any): void {
     if (!message || !this.user) return;
-    
+
     // Check if conversation exists
     const senderId = message.senderId;
     const isCurrentUser = senderId === this.user.id;
     const otherUserId = isCurrentUser ? message.recipientId : senderId;
-    
+
     const existingConvIndex = this.conversations.findIndex(c => c.userId === otherUserId);
-    
+
     if (existingConvIndex > -1) {
       // Update existing conversation
       const updatedConv = {...this.conversations[existingConvIndex]};
       updatedConv.lastMessage = message.content;
       updatedConv.lastMessageTime = new Date(message.timestamp || Date.now());
-      
+
       if (!isCurrentUser) {
         updatedConv.unreadCount = (updatedConv.unreadCount || 0) + 1;
       }
-      
+
       // Create a new array with the updated conversation at the top
       const newConversations = [...this.conversations];
       newConversations.splice(existingConvIndex, 1);
@@ -722,7 +765,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
             unreadCount: 1,
             online: true
           };
-          
+
           this.conversations = [newConversation, ...this.conversations];
         },
         error: (error) => {
@@ -731,13 +774,13 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   // Open a specific conversation
   openConversation(userId: number): void {
     if (!userId || !this.user) return;
-    
+
     this.currentConversationUserId = userId;
-    
+
     // Find the conversation and mark it as read (optimistic UI update)
     const convIndex = this.conversations.findIndex(c => c.userId === userId);
     if (convIndex > -1 && this.conversations[convIndex].unreadCount > 0) {
@@ -748,7 +791,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         unreadCount: 0
       };
       this.conversations = updatedConversations;
-      
+
       // Call API to mark conversation as read
       this.messageService.markConversationAsRead(userId).subscribe({
         next: () => {
@@ -759,7 +802,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         }
       });
     }
-    
+
     // For now just show a notification
     Swal.fire({
       title: 'Opening Conversation',
@@ -771,16 +814,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       timer: 2000
     });
   }
-  
+
   // Notifications section
   notifications: any[] = [];
   isLoadingNotifications: boolean = false;
-  
+
   loadNotifications(): void {
     if (!this.user) return;
-    
+
     this.isLoadingNotifications = true;
-    
+
     this.notificationService.getNotifications().subscribe({
       next: (data) => {
         this.notifications = data;
@@ -789,7 +832,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error loading notifications:', error);
         this.isLoadingNotifications = false;
-        
+
         // Load fallback data for demo
         if (error.status === 404 || error.status === 0) {
           this.loadFallbackNotifications();
@@ -797,7 +840,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   loadFallbackNotifications(): void {
     const types = ['like', 'comment', 'friend', 'system', 'event'];
     const messages = [
@@ -807,7 +850,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       'System maintenance scheduled',
       'Upcoming event: Study group'
     ];
-    
+
     this.notifications = Array(5).fill(0).map((_, i) => ({
       id: i + 1,
       type: types[i],
@@ -816,7 +859,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       read: i > 2
     }));
   }
-  
+
   markNotificationAsRead(notificationId: number): void {
     // Find notification and update locally first (optimistic UI)
     const notifIndex = this.notifications.findIndex(n => n.id === notificationId);
@@ -827,7 +870,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         read: true
       };
       this.notifications = updatedNotifications;
-      
+
       // API call to mark as read
       this.notificationService.markAsRead(notificationId).subscribe({
         error: (error) => {
@@ -838,11 +881,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   deleteNotification(notificationId: number): void {
     // Remove notification from UI immediately (optimistic UI)
     this.notifications = this.notifications.filter(n => n.id !== notificationId);
-    
+
     // API call to delete
     this.notificationService.deleteNotification(notificationId).subscribe({
       error: (error) => {
@@ -852,29 +895,25 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
-  // Friends section
-  friends: any[] = [];
-  friendRequests: any[] = [];
-  friendSuggestions: any[] = [];
-  isLoadingFriends: boolean = false;
-  isLoadingRequests: boolean = false;
-  isLoadingSuggestions: boolean = false;
-  
+
+  // Friends section - properties already defined at the top of the class
+
+  // Load friends from API or fallback
   loadFriends(): void {
     if (!this.user) return;
-    
+
     this.isLoadingFriends = true;
-    
+
     this.friendshipService.getFriends().subscribe({
       next: (data) => {
         this.friends = data;
         this.isLoadingFriends = false;
+        console.log('Friends loaded successfully:', this.friends.length);
       },
       error: (error) => {
         console.error('Error loading friends:', error);
         this.isLoadingFriends = false;
-        
+
         // Load fallback data for demo
         if (error.status === 404 || error.status === 0) {
           this.loadFallbackFriends();
@@ -882,21 +921,36 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
+  // Load fallback friends for demo or testing
+  loadFallbackFriends(): void {
+    this.friends = Array(3).fill(0).map((_, i) => ({
+      id: i + 1,
+      firstName: ['John', 'Jane', 'Alex'][i],
+      lastName: ['Doe', 'Smith', 'Johnson'][i],
+      email: `friend${i+1}@example.com`,
+      profileImage: 'assets/img/default-avatar.png',  // Use consistent default image path
+      online: [true, false, true][i],
+      skills: ['JavaScript, HTML, CSS', 'Python, Data Science', 'Java, Spring Boot'][i]
+    }));
+  }
+
+  // Load friend requests from API or fallback
   loadFriendRequests(): void {
     if (!this.user) return;
-    
+
     this.isLoadingRequests = true;
-    
+
     this.friendshipService.getPendingFriendRequests().subscribe({
       next: (data) => {
         this.friendRequests = data;
         this.isLoadingRequests = false;
+        console.log('Friend requests loaded successfully:', this.friendRequests.length);
       },
       error: (error) => {
         console.error('Error loading friend requests:', error);
         this.isLoadingRequests = false;
-        
+
         // Load fallback data for demo
         if (error.status === 404 || error.status === 0) {
           this.loadFallbackFriendRequests();
@@ -904,21 +958,49 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
+  // Load fallback friend requests for demo or testing
+  loadFallbackFriendRequests(): void {
+    this.friendRequests = Array(2).fill(0).map((_, i) => ({
+      id: i + 10,
+      firstName: ['Michael', 'Sarah'][i],
+      lastName: ['Brown', 'Davis'][i],
+      email: `request${i+1}@example.com`,
+      profileImage: 'assets/img/default-avatar.png',  // Use consistent default image path
+      mutualFriends: i + 2,
+      createdAt: new Date()
+    }));
+  }
+
+  // Load friend suggestions from API or fallback
   loadFriendSuggestions(): void {
     if (!this.user) return;
-    
+
     this.isLoadingSuggestions = true;
-    
+
     this.friendshipService.getFriendSuggestions().subscribe({
       next: (data) => {
-        this.friendSuggestions = data;
+        // Process the data to ensure profile images are handled correctly
+        this.friendSuggestions = data.map(suggestion => {
+          // If profileImage is already a complete object, use it directly
+          // Otherwise, ensure it's properly formatted for the MessageService
+          if (suggestion.profileImage && typeof suggestion.profileImage === 'string') {
+            if (!suggestion.profileImage.startsWith('http') &&
+                !suggestion.profileImage.startsWith('data:') &&
+                !suggestion.profileImage.startsWith('assets/')) {
+              suggestion.profileImage = `data:image/jpeg;base64,${suggestion.profileImage}`;
+            }
+          }
+          return suggestion;
+        });
+
         this.isLoadingSuggestions = false;
+        console.log('Friend suggestions loaded successfully:', this.friendSuggestions.length);
       },
       error: (error) => {
         console.error('Error loading friend suggestions:', error);
         this.isLoadingSuggestions = false;
-        
+
         // Load fallback data for demo
         if (error.status === 404 || error.status === 0) {
           this.loadFallbackFriendSuggestions();
@@ -926,42 +1008,59 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
-  loadFallbackFriends(): void {
-    this.friends = Array(5).fill(0).map((_, i) => ({
-      id: i + 1,
-      firstName: ['Alex', 'Taylor', 'Jordan', 'Casey', 'Riley'][i],
-      lastName: ['Johnson', 'Smith', 'Lee', 'Morgan', 'Wilson'][i],
-      email: `friend${i+1}@example.com`,
-      profileImage: 'assets/img/default-user.png',
-      online: i % 2 === 0
-    }));
-  }
-  
-  loadFallbackFriendRequests(): void {
-    this.friendRequests = Array(3).fill(0).map((_, i) => ({
-      id: i + 100,
-      userId: i + 10,
-      firstName: ['Jamie', 'Morgan', 'Avery'][i],
-      lastName: ['Lopez', 'Chen', 'Roberts'][i],
-      profileImage: 'assets/img/default-user.png',
-      requestDate: new Date(Date.now() - (i * 86400000)), // days ago
-      mutualFriends: i * 2
-    }));
-  }
-  
+
+  // Load fallback friend suggestions for demo or testing
   loadFallbackFriendSuggestions(): void {
     this.friendSuggestions = Array(4).fill(0).map((_, i) => ({
       id: i + 20,
       firstName: ['Quinn', 'Harper', 'Rowan', 'Blake'][i],
       lastName: ['Miller', 'Taylor', 'Garcia', 'Thomas'][i],
       email: `suggestion${i+1}@example.com`,
-      profileImage: 'assets/img/default-user.png',
+      profileImage: 'assets/img/default-avatar.png',  // Use consistent default image path
       mutualFriends: i + 1,
-      department: ['Computer Science', 'Engineering', 'Business', 'Math'][i]
+      department: ['Computer Science', 'Engineering', 'Business', 'Math'][i],
+      skills: ['JavaScript, Angular', 'Python, Data Science', 'UI/UX, Design', 'Java, Spring Boot'][i]
     }));
   }
-  
+
+  // Load users with matching skills
+  loadSkillMatches(): void {
+    if (!this.user) return;
+
+    this.isLoadingSkillMatches = true;
+
+    this.skillMatchingService.findUsersWithMatchingSkills().subscribe({
+      next: (data) => {
+        // Process the data and ensure profile images are formatted correctly
+        this.skillMatches = data;
+        this.isLoadingSkillMatches = false;
+        console.log('Skill matches loaded successfully:', this.skillMatches.length);
+      },
+      error: (error) => {
+        console.error('Error loading skill matches:', error);
+        this.isLoadingSkillMatches = false;
+
+        // Load fallback data for demo
+        if (error.status === 404 || error.status === 0) {
+          this.loadFallbackSkillMatches();
+        }
+      }
+    });
+  }
+
+  // Provide fallback skill matches data for demo
+  loadFallbackSkillMatches(): void {
+    this.skillMatches = Array(3).fill(0).map((_, i) => ({
+      id: i + 30,
+      firstName: ['Alex', 'Jordan', 'Morgan'][i],
+      lastName: ['Chen', 'Smith', 'Rivera'][i],
+      email: `skillmatch${i+1}@example.com`,
+      profileImage: 'assets/img/default-avatar.png',  // Use consistent default image path
+      skills: ['JavaScript, Angular, Node.js', 'Python, Data Science, Machine Learning', 'UX Design, Figma, Prototyping'][i],
+      matchScore: [85, 72, 65][i]
+    }));
+  }
+
   // Friend request actions
   acceptFriendRequest(requestId: number): void {
     // Optimistic UI update
@@ -969,7 +1068,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
     if (request) {
       // Remove from requests list
       this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-      
+
       // Add to friends list
       this.friends.unshift({
         id: request.userId,
@@ -978,12 +1077,12 @@ export class ProfileComponent implements OnInit, OnDestroy {
         profileImage: request.profileImage,
         online: true
       });
-      
+
       // Decrease pending requests count
       if (this.pendingFriendRequestsCount > 0) {
         this.pendingFriendRequestsCount--;
       }
-      
+
       // API call
       this.friendshipService.acceptFriendRequest(requestId).subscribe({
         error: (error) => {
@@ -995,16 +1094,16 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   declineFriendRequest(requestId: number): void {
     // Optimistic UI update
     this.friendRequests = this.friendRequests.filter(r => r.id !== requestId);
-    
+
     // Decrease pending requests count
     if (this.pendingFriendRequestsCount > 0) {
       this.pendingFriendRequestsCount--;
     }
-    
+
     // API call
     this.friendshipService.declineFriendRequest(requestId).subscribe({
       error: (error) => {
@@ -1014,14 +1113,14 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
   sendFriendRequest(userId: number): void {
     // Find user in suggestions
     const suggestion = this.friendSuggestions.find(s => s.id === userId);
     if (suggestion) {
       // Remove from suggestions list (optimistic UI)
       this.friendSuggestions = this.friendSuggestions.filter(s => s.id !== userId);
-      
+
       // Show success message
       Swal.fire({
         icon: 'success',
@@ -1032,7 +1131,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         showConfirmButton: false,
         timer: 2000
       });
-      
+
       // API call
       this.friendshipService.sendFriendRequest(userId).subscribe({
         error: (error) => {
@@ -1043,7 +1142,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
     }
   }
-  
+
   removeFriend(friendId: number): void {
     // Confirm with user
     Swal.fire({
@@ -1057,7 +1156,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
       if (result.isConfirmed) {
         // Optimistic UI update
         this.friends = this.friends.filter(f => f.id !== friendId);
-        
+
         // API call - assuming we need to get the friendship ID first
         // In a real app, you might store the friendship ID in the friends list
         // or have an API endpoint that accepts user IDs
@@ -1071,21 +1170,35 @@ export class ProfileComponent implements OnInit, OnDestroy {
       }
     });
   }
-  
+
+  // Called when clicking on the little blue message icon or from the Friends component
+  openChatPopup(friendId: number): void {
+    console.log('Opening chat popup with friend ID:', friendId);
+    // Implement optimistic UI updates as per memory - show popup immediately
+    this.chatPopupRecipientId = friendId;
+    this.isChatPopupOpen = true;
+  }
+
+  // To close popup
+  closeChatPopup(): void {
+    this.isChatPopupOpen = false;
+    this.chatPopupRecipientId = null;
+  }
+
   // Add a single interest to the user's profile
   addInterestToProfile(interest: string): void {
     if (!this.user) {
       console.error('Cannot add interest: User is not loaded');
       return;
     }
-    
+
     console.log('Adding interest to profile:', interest);
-    
+
     // Get current skills as array
-    const currentSkills = this.user?.skills ? 
-      this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') : 
+    const currentSkills = this.user?.skills ?
+      this.user.skills.split(',').map(s => s.trim()).filter(s => s !== '') :
       [];
-    
+
     // Check if interest already exists
     if (currentSkills.includes(interest)) {
       Swal.fire({
@@ -1099,11 +1212,11 @@ export class ProfileComponent implements OnInit, OnDestroy {
       });
       return;
     }
-    
+
     // Add the new interest
     currentSkills.push(interest);
     const updatedSkills = currentSkills.join(', ');
-    
+
     // Update the form if in edit mode
     if (this.isEditing) {
       this.profileForm.patchValue({ skills: updatedSkills });
@@ -1121,18 +1234,18 @@ export class ProfileComponent implements OnInit, OnDestroy {
     else {
       // Create a shallow copy of the user object with updated skills
       // Type assertion to ensure id is present (we've already checked this.user exists)
-      const updatedUser = { 
-        ...this.user, 
-        skills: updatedSkills 
+      const updatedUser = {
+        ...this.user,
+        skills: updatedSkills
       } as User;
-      
+
       console.log('Updating user profile with new interest:', updatedSkills);
-      
+
       // First, update the local user object optimistically
       // This implements the optimistic UI pattern mentioned in the memories
       this.user.skills = updatedSkills;
       this.updateSkillsDisplay();
-      
+
       // Now send the update to the backend
       this.authService.updateOwnProfile(this.user.id, updatedUser).subscribe({
         next: (response) => {
@@ -1152,7 +1265,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating interests:', error);
-          
+
           // Check if the error has a success status code
           // This handles the issue mentioned in memories where updates succeed but show errors
           if (error.status >= 200 && error.status < 300) {

@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 public class NotificationDTO {
     private Long id;
     private Long userId;
+    private String userName;       // Nom de l'utilisateur pour l'affichage
+    private String userProfileImage; // Image de profil pour l'affichage dans les notifications
     private String content;
     private String type;
     private Long referenceId;

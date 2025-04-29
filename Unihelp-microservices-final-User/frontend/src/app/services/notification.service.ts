@@ -30,7 +30,7 @@ export class NotificationService {
   // Error handling
   private handleError(error: any): Observable<never> {
     console.error('NotificationService Error: ', error);
-    
+
     // If it's a 404 Not Found, return an empty array or default value
     if (error.status === 404) {
       console.log('NotificationService: Resource not found, returning empty result');
@@ -43,13 +43,13 @@ export class NotificationService {
         return of({ count: 0 }) as any;
       }
     }
-    
+
     // For status codes that indicate success but are reported as errors
     if (error.status >= 200 && error.status < 300) {
       console.log('NotificationService: Treating error as success based on status code:', error.status);
       return of({}) as any;
     }
-    
+
     throw error;
   }
 
@@ -57,7 +57,7 @@ export class NotificationService {
   getNotifications(): Observable<any[]> {
     const notificationsUrl = `${environment.apiUrl}/api/notifications`;
     console.log('Getting notifications from:', notificationsUrl);
-    
+
     return this.http.get<any[]>(
       notificationsUrl,
       { headers: this.getHeaders() }
@@ -90,7 +90,7 @@ export class NotificationService {
   // Mark a notification as read
   markAsRead(notificationId: number): Observable<any> {
     const readUrl = `${environment.apiUrl}/api/notifications/${notificationId}/read`;
-    
+
     return this.http.put(
       readUrl,
       {},
@@ -107,7 +107,7 @@ export class NotificationService {
   // Mark all notifications as read
   markAllAsRead(): Observable<any> {
     const readAllUrl = `${environment.apiUrl}/api/notifications/read-all`;
-    
+
     return this.http.put(
       readAllUrl,
       {},
@@ -129,7 +129,7 @@ export class NotificationService {
   // Get unread notifications count
   getUnreadCount(): Observable<{ count: number }> {
     const countUrl = `${environment.apiUrl}/api/notifications/unread/count`;
-    
+
     return this.http.get<{ count: number }>(
       countUrl,
       { headers: this.getHeaders() }
@@ -154,7 +154,7 @@ export class NotificationService {
   // Delete a notification
   deleteNotification(notificationId: number): Observable<any> {
     const deleteUrl = `${environment.apiUrl}/api/notifications/${notificationId}`;
-    
+
     return this.http.delete(
       deleteUrl,
       { headers: this.getHeaders() }

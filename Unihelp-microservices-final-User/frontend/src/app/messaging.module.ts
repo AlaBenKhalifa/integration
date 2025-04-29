@@ -11,7 +11,7 @@ import { NotificationsComponent } from './components/notifications/notifications
 @NgModule({
   declarations: [
     FriendsComponent,
-    MessagingComponent, 
+    MessagingComponent,
     NotificationsComponent
   ],
   imports: [

@@ -52,11 +52,11 @@ export class SignupComponent implements OnInit {
   }
 
   ngOnInit(): void {
-  // Initialize Google Sign-In after DOM is fully loaded
-  setTimeout(() => {
-    this.initializeGoogleSignIn();
-  }, 1000);
-}
+    // Initialize Google Sign-In after DOM is fully loaded
+    setTimeout(() => {
+      this.initializeGoogleSignIn();
+    }, 1000);
+  }
 
   togglePasswordVisibility(): void {
     this.showPassword = !this.showPassword;
@@ -138,7 +138,7 @@ export class SignupComponent implements OnInit {
       console.log('Form errors:', this.signupForm.errors);
       return;
     }
-    
+
     this.isLoading = true;
     this.errorMessage = null;
 
@@ -184,15 +184,15 @@ export class SignupComponent implements OnInit {
   goToLogin(): void {
     this.router.navigate(['/login']);
   }
-  
+
   // Note: signInWithGoogle method removed as we're now using FedCM with rendered buttons
   // and initializing Google Sign-In in ngOnInit
-  
+
   private initializeGoogleSignIn(): void {
     try {
       // Use the actual Google Client ID
       const clientId = '464900684466-96jtnmiv303pv1tfgh9c4010cb0dobvq.apps.googleusercontent.com';
-      
+
       google.accounts.id.initialize({
         client_id: clientId,
         callback: this.handleGoogleSignIn.bind(this),
@@ -201,7 +201,7 @@ export class SignupComponent implements OnInit {
         use_fedcm_for_prompt: true, // Enable FedCM
         itp_support: true // Add ITP support for Safari
       });
-      
+
       // Instead of using prompt(), render a button
       // Make sure you have a div with id 'google-signup-button' in your HTML template
       const buttonElement = document.getElementById('google-signup-button');
@@ -222,12 +222,12 @@ export class SignupComponent implements OnInit {
       console.error('Error initializing Google Sign-In:', error);
     }
   }
-  
+
   private handleGoogleSignIn(response: any): void {
     try {
       console.log('Google Sign-In response received:', response);
       const idToken = response.credential;
-      
+
       if (!idToken) {
         console.error('No credential found in Google response');
         Swal.fire({
@@ -238,16 +238,16 @@ export class SignupComponent implements OnInit {
         });
         return;
       }
-      
+
       this.isLoading = true;
       console.log('Sending Google token to backend...');
-      
+
       this.authService.loginWithGoogle(idToken).subscribe({
         next: (response) => {
           console.log('Backend response:', response);
           this.isLoading = false;
           const role = response.role;
-          
+
           if (role === 'ADMIN') {
             // Do NOT store session in localStorage for admin
             Swal.fire({
@@ -276,13 +276,13 @@ export class SignupComponent implements OnInit {
               profileCompleted: response.profileCompleted,
               newUser: response.newUser
             }));
-            
+
             // Log profile completion status for debugging
             console.log('Profile completion status:', {
               newUser: response.newUser,
               profileCompleted: response.profileCompleted
             });
-            
+
             Swal.fire({
               icon: 'success',
               title: 'Sign In Successful',
@@ -305,7 +305,7 @@ export class SignupComponent implements OnInit {
           console.error('Error from backend:', err);
           this.isLoading = false;
           let errorMessage = 'Google sign-in failed. Please try again.';
-          
+
           if (err.error && typeof err.error === 'string') {
             errorMessage = err.error;
           } else if (err.message) {
@@ -313,7 +313,7 @@ export class SignupComponent implements OnInit {
           } else if (err.status === 0) {
             errorMessage = 'Cannot connect to the server. Please check if the backend is running.';
           }
-          
+
           this.errorMessage = errorMessage;
           Swal.fire({
             icon: 'error',

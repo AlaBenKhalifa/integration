@@ -37,21 +37,39 @@
       </div>
 
       <div *ngIf="!isLoading && friends.length > 0" class="friends-grid">
+        <div class="friends-actions-bar">
+          <button class="action-button find-friends-btn" (click)="changeTab('discover')">Find Friends</button>
+        </div>
         <div *ngFor="let friend of friends" class="friend-card">
-          <div class="avatar" [style.background-image]="'url(' + (friend.profileImage || 'assets/default-avatar.png') + ')'"></div>
-          <div class="friend-info">
-            <h3>{{friend.firstName}} {{friend.lastName}}</h3>
-            <p class="friend-skills" *ngIf="friend.skills">{{friend.skills}}</p>
-            <p class="friend-bio" *ngIf="friend.bio">{{friend.bio | slice:0:60}}{{(friend.bio.length || 0) > 60 ? '...' : ''}}</p>
-            <div class="friend-actions">
-              <button class="view-profile-btn" (click)="viewProfile(friend.id)">
+          <div class="modern-profile-header">
+            <div class="modern-profile-image">
+              <img [src]="getProfileImageUrl(friend.profileImage)" alt="Profile Image" />
+              <span class="modern-status-dot active" title="Active"></span>
+            </div>
+            <div class="modern-profile-info">
+              <div class="modern-profile-main">
+                <h3 class="modern-user-name">{{friend.firstName}} {{friend.lastName}}</h3>
+                <span class="modern-role-tag">{{friend.role || 'Student'}}</span>
+              </div>
+              <span class="modern-user-email" *ngIf="friend.email">{{friend.email}}</span>
+            </div>
+          </div>
+          <div class="modern-profile-details">
+            <p class="modern-user-bio" *ngIf="friend.bio">{{friend.bio | slice:0:60}}{{(friend.bio.length || 0) > 60 ? '...' : ''}}</p>
+            <div class="modern-user-skills" *ngIf="friend.skills">
+              <ng-container *ngFor="let skill of getSplitSkills(friend.skills || '')">
+                <span class="modern-skill-tag">{{ skill }}</span>
+              </ng-container>
+            </div>
+            <div class="modern-action-buttons">
+              <button class="btn btn-primary btn-sm" (click)="viewProfile(friend.id)">
                 <i class="fas fa-user"></i> Profile
               </button>
-              <button class="message-btn" (click)="startChat(friend.id)">
+              <button class="btn btn-info btn-sm" (click)="startChat(friend.id)">
                 <i class="fas fa-comment"></i> Message
               </button>
-              <button class="remove-btn" (click)="removeFriend(friend.friendshipId || 0)">
-                <i class="fas fa-user-minus"></i>
+              <button class="btn btn-danger btn-sm" (click)="removeFriend(friend.friendshipId || 0)">
+                <i class="fas fa-user-minus"></i> Remove
               </button>
             </div>
           </div>
@@ -127,17 +145,32 @@
       <div *ngIf="suggestions.length > 0" class="suggestions-container">
         <h3>People You May Know</h3>
         <div class="suggestions-grid">
-          <div *ngFor="let suggestion of suggestions" class="suggestion-card">
-            <div class="avatar" [style.background-image]="'url(' + (suggestion.profileImage || 'assets/default-avatar.png') + ')'"></div>
-            <div class="suggestion-info">
-              <h4>{{suggestion.firstName}} {{suggestion.lastName}}</h4>
-              <p *ngIf="suggestion.skills">Skills: {{suggestion.skills | slice:0:40}}{{(suggestion.skills.length || 0) > 40 ? '...' : ''}}</p>
-              <p *ngIf="suggestion.bio">{{suggestion.bio | slice:0:60}}{{(suggestion.bio.length || 0) > 60 ? '...' : ''}}</p>
-              <div class="suggestion-actions">
-                <button class="connect-btn" (click)="sendFriendRequest(suggestion.id)">
+          <div *ngFor="let suggestion of suggestions" class="suggestion-card modern-profile-card">
+            <div class="modern-profile-header">
+              <div class="modern-profile-image">
+                <img [src]="getProfileImageUrl(suggestion.profileImage)" alt="Profile Image" />
+                <span class="modern-status-dot active" title="Active"></span>
+              </div>
+              <div class="modern-profile-info">
+                <div class="modern-profile-main">
+                  <h3 class="modern-user-name">{{ suggestion.firstName }} {{ suggestion.lastName }}</h3>
+                  <span class="modern-role-tag">Student</span>
+                </div>
+                <span class="modern-user-email" *ngIf="suggestion.email">{{ suggestion.email }}</span>
+              </div>
+            </div>
+            <div class="modern-profile-details">
+              <p class="modern-user-bio" *ngIf="suggestion.bio">{{ suggestion.bio | slice:0:60 }}{{(suggestion.bio.length || 0) > 60 ? '...' : ''}}</p>
+              <div class="modern-user-skills" *ngIf="suggestion.skills">
+                <ng-container *ngFor="let skill of getSplitSkills(suggestion.skills || '')">
+                  <span class="modern-skill-tag">{{ skill }}</span>
+                </ng-container>
+              </div>
+              <div class="modern-action-buttons">
+                <button class="modern-connect-btn" (click)="sendFriendRequest(suggestion.id)">
                   <i class="fas fa-user-plus"></i> Connect
                 </button>
-                <button class="view-profile-btn" (click)="viewProfile(suggestion.id)">
+                <button class="modern-profile-btn" (click)="viewProfile(suggestion.id)">
                   <i class="fas fa-user"></i> Profile
                 </button>
               </div>
@@ -158,18 +191,32 @@
       <div *ngIf="skillMatches.length > 0" class="skill-matches-container">
         <h3>People with Similar Skills</h3>
         <div class="skill-matches-grid">
-          <div *ngFor="let match of skillMatches" class="skill-match-card">
-            <div class="avatar" [style.background-image]="'url(' + (match.profileImage || 'assets/default-avatar.png') + ')'"></div>
-            <div class="match-info">
-              <h4>{{match.firstName}} {{match.lastName}}</h4>
-              <div class="match-skills">
-                <p>Skills: {{match.skills ? (match.skills | slice:0:50) : ''}}{{match.skills && match.skills.length > 50 ? '...' : ''}}</p>
+          <div *ngFor="let match of skillMatches" class="skill-match-card modern-profile-card">
+            <div class="modern-profile-header">
+              <div class="modern-profile-image">
+                <img [src]="getProfileImageUrl(match.profileImage)" alt="Profile Image" />
+                <span class="modern-status-dot active" title="Active"></span>
               </div>
-              <div class="match-actions">
-                <button class="connect-btn" (click)="sendFriendRequest(match.id)">
+              <div class="modern-profile-info">
+                <div class="modern-profile-main">
+                  <h3 class="modern-user-name">{{ match.firstName }} {{ match.lastName }}</h3>
+                  <span class="modern-role-tag">Student</span>
+                </div>
+                <span class="modern-user-email" *ngIf="match.email">{{ match.email }}</span>
+              </div>
+            </div>
+            <div class="modern-profile-details">
+              <p class="modern-user-bio" *ngIf="match.bio">{{ match.bio | slice:0:60 }}{{(match.bio.length || 0) > 60 ? '...' : ''}}</p>
+              <div class="modern-user-skills" *ngIf="match.skills">
+                <ng-container *ngFor="let skill of getSplitSkills(match.skills || '')">
+                  <span class="modern-skill-tag">{{ skill }}</span>
+                </ng-container>
+              </div>
+              <div class="modern-action-buttons">
+                <button class="modern-connect-btn" (click)="sendFriendRequest(match.id)">
                   <i class="fas fa-user-plus"></i> Connect
                 </button>
-                <button class="view-profile-btn" (click)="viewProfile(match.id)">
+                <button class="modern-profile-btn" (click)="viewProfile(match.id)">
                   <i class="fas fa-user"></i> Profile
                 </button>
               </div>

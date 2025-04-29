@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.*;
 public class NlpController {
 
     private final NlpService nlpService;
-    
+
     /**
      * Analyze the bio of a user with the given ID
-     * 
+     *
      * @param userId ID of the user whose bio to analyze
      * @return NLP analysis results
      */
@@ -28,10 +28,10 @@ public class NlpController {
         NlpAnalysisResult result = nlpService.analyzeBio(userId);
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Analyze provided text without saving results
-     * 
+     *
      * @param text Text to analyze
      * @return NLP analysis results
      */
@@ -40,10 +40,10 @@ public class NlpController {
         NlpAnalysisResult result = nlpService.analyzeText(text);
         return ResponseEntity.ok(result);
     }
-    
+
     /**
      * Get the stored NLP analysis for a user
-     * 
+     *
      * @param userId ID of the user
      * @return NLP analysis results
      */

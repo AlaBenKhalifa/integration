@@ -1,8 +1,9 @@
 package com.unihelp.user.entities;
 
 public enum FriendshipStatus {
-    PENDING, 
-    ACCEPTED, 
+    PENDING,
+    ACCEPTED,
     DECLINED,
-    BLOCKED
+    BLOCKED,
+    REMOVED    // Nouveau statut pour les amitiés supprimées
 }

@@ -28,14 +28,14 @@ export class FriendshipService {
   // Error handling
   private handleError(error: any): Observable<never> {
     console.error('FriendshipService Error: ', error);
-    
+
     // If it's a 404 Not Found, return an empty array or default value
     if (error.status === 404) {
       console.log('FriendshipService: Resource not found, returning empty result');
       // For methods returning observables of arrays, we return empty array
-      if (error.url?.includes('/friends') || 
-          error.url?.includes('/pending') || 
-          error.url?.includes('/suggestions')) {
+      if (error.url?.includes('/friends') ||
+        error.url?.includes('/pending') ||
+        error.url?.includes('/suggestions')) {
         return of([]) as any;
       }
       // For methods returning count, return 0
@@ -47,22 +47,32 @@ export class FriendshipService {
         return of({ status: 'NOT_CONNECTED' }) as any;
       }
     }
-    
+
     // For status codes that indicate success but are reported as errors
     if (error.status >= 200 && error.status < 300) {
       console.log('FriendshipService: Treating error as success based on status code:', error.status);
       return of({}) as any;
     }
-    
+
     throw error;
   }
 
   // Send a friend request
   sendFriendRequest(recipientId: number): Observable<any> {
     const requestUrl = `${environment.apiUrl}/api/friendships/request/${recipientId}`;
+
+    // Get current user first to include their name in the notification
+    // But this is the optimistic approach - proceed with the request even if getting user fails
+    const currentUserName = localStorage.getItem('fullName') || 'Someone';
+
     return this.http.post(
       requestUrl,
-      {},
+      {
+        notificationData: {
+          message: `${currentUserName} sent you a friend request`,
+          type: 'FRIEND_REQUEST'
+        }
+      },
       { headers: this.getHeaders() }
     ).pipe(catchError((error) => {
       console.error('Error sending friend request:', error);
@@ -134,9 +144,9 @@ export class FriendshipService {
           // Ensure profileImage is properly formatted (if not null)
           if (friend.profileImage) {
             // If it's not already a URL or data URL, assume it's base64 and add the prefix
-            if (!friend.profileImage.startsWith('http') && 
-                !friend.profileImage.startsWith('data:') && 
-                !friend.profileImage.startsWith('assets/')) {
+            if (!friend.profileImage.startsWith('http') &&
+              !friend.profileImage.startsWith('data:') &&
+              !friend.profileImage.startsWith('assets/')) {
               friend.profileImage = `data:image/jpeg;base64,${friend.profileImage}`;
             }
           }
@@ -159,18 +169,35 @@ export class FriendshipService {
       { headers: this.getHeaders() }
     ).pipe(
       map((requests: any[]) => {
-        // Process the profile images to ensure they are properly formatted
-        return requests.map((request: any) => {
+        // Transform the FriendshipDTO into a flat structure expected by the UI
+        return requests.map((friendship: any) => {
+          // Extract user info from the requester (the one who sent the request)
+          const requester = friendship.requester;
+
+          // Create a flattened object with the friendship ID and user details
+          const flattenedRequest = {
+            id: friendship.id,  // This is the friendship ID
+            userId: requester.id, // The user ID of the requester
+            firstName: requester.firstName,
+            lastName: requester.lastName,
+            email: requester.email,
+            profileImage: requester.profileImage,
+            requestDate: friendship.requestDate,
+            status: friendship.status,
+            mutualFriends: 0 // Default value, could be calculated if needed
+          };
+
           // Ensure profileImage is properly formatted (if not null)
-          if (request.profileImage) {
+          if (flattenedRequest.profileImage) {
             // If it's not already a URL or data URL, assume it's base64 and add the prefix
-            if (!request.profileImage.startsWith('http') && 
-                !request.profileImage.startsWith('data:') && 
-                !request.profileImage.startsWith('assets/')) {
-              request.profileImage = `data:image/jpeg;base64,${request.profileImage}`;
+            if (!flattenedRequest.profileImage.startsWith('http') &&
+              !flattenedRequest.profileImage.startsWith('data:') &&
+              !flattenedRequest.profileImage.startsWith('assets/')) {
+              flattenedRequest.profileImage = `data:image/jpeg;base64,${flattenedRequest.profileImage}`;
             }
           }
-          return request;
+
+          return flattenedRequest;
         });
       }),
       catchError((error) => {
@@ -218,9 +245,9 @@ export class FriendshipService {
           // Ensure profileImage is properly formatted (if not null)
           if (suggestion.profileImage) {
             // If it's not already a URL or data URL, assume it's base64 and add the prefix
-            if (!suggestion.profileImage.startsWith('http') && 
-                !suggestion.profileImage.startsWith('data:') && 
-                !suggestion.profileImage.startsWith('assets/')) {
+            if (!suggestion.profileImage.startsWith('http') &&
+              !suggestion.profileImage.startsWith('data:') &&
+              !suggestion.profileImage.startsWith('assets/')) {
               suggestion.profileImage = `data:image/jpeg;base64,${suggestion.profileImage}`;
             }
           }
@@ -235,7 +262,7 @@ export class FriendshipService {
       })
     );
   }
-  
+
   // Get count of pending friend requests
   getPendingRequestsCount(): Observable<{ count: number }> {
     const countUrl = `${environment.apiUrl}/api/friendships/pending/count`;

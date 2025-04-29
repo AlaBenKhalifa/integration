@@ -10,7 +10,7 @@ describe('ActiveUsersComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ActiveUsersComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(ActiveUsersComponent);
     component = fixture.componentInstance;

@@ -43,7 +43,7 @@ export class AuthInterceptor implements HttpInterceptor {
       tap(event => {
         // Could add specific response tracking here if needed
       }),
-      
+
       // Handle errors, particularly authentication errors
       catchError((error: HttpErrorResponse) => {
         if (error.status === 401 || error.status === 403) {
@@ -53,12 +53,12 @@ export class AuthInterceptor implements HttpInterceptor {
               console.log('Logout recorded due to auth error');
             });
           }
-          
+
           // Redirect to login page
           this.authService.logout();
           this.router.navigate(['/login']);
         }
-        
+
         return throwError(() => error);
       })
     );

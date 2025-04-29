@@ -20,7 +20,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final FriendshipService friendshipService;
-    
+
     /**
      * Get all notifications for the current user
      */
@@ -30,7 +30,7 @@ public class NotificationController {
         List<NotificationDTO> notifications = notificationService.getNotifications(currentUserId);
         return ResponseEntity.ok(notifications);
     }
-    
+
     /**
      * Get paginated notifications for the current user
      */
@@ -38,12 +38,12 @@ public class NotificationController {
     public ResponseEntity<Page<NotificationDTO>> getNotificationsPaginated(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        
+
         Long currentUserId = getCurrentUserId();
         Page<NotificationDTO> notifications = notificationService.getNotificationsPaginated(currentUserId, page, size);
         return ResponseEntity.ok(notifications);
     }
-    
+
     /**
      * Mark a notification as read
      */
@@ -53,7 +53,7 @@ public class NotificationController {
         NotificationDTO notification = notificationService.markAsRead(notificationId, currentUserId);
         return ResponseEntity.ok(notification);
     }
-    
+
     /**
      * Mark all notifications as read
      */
@@ -63,7 +63,7 @@ public class NotificationController {
         notificationService.markAllAsRead(currentUserId);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Get unread notifications count
      */
@@ -73,7 +73,7 @@ public class NotificationController {
         long count = notificationService.getUnreadCount(currentUserId);
         return ResponseEntity.ok(Map.of("count", count));
     }
-    
+
     /**
      * Delete a notification
      */
@@ -83,14 +83,14 @@ public class NotificationController {
         notificationService.deleteNotification(notificationId, currentUserId);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Get the current user's ID from the security context
      */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
-        
+
         return friendshipService.getUserIdByEmail(userEmail);
     }
 }

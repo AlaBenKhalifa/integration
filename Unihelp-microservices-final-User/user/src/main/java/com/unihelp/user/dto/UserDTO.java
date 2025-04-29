@@ -18,4 +18,5 @@ public class UserDTO {
     private String skills;
     private String profileImage;
     private String role;
+    private Long friendshipId; // Added to support friend removal operations
 }

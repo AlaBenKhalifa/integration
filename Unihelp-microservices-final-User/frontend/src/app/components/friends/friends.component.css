@@ -150,6 +150,35 @@
   transition: background 0.3s;
 }
 
+/* Friends Actions Bar */
+.friends-actions-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.find-friends-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #4CAF50;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.find-friends-btn:before {
+  content: '\f234';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+}
+
+.find-friends-btn:hover {
+  background: #43a047;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
 .action-button:hover {
   background: #303f9f;
 }

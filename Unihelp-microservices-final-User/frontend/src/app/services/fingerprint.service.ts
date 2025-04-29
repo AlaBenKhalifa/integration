@@ -72,7 +72,7 @@ export class FingerprintService {
       // Generate a simple visitor ID using timestamp and random value
       // This isn't as unique as FingerprintJS but works for basic tracking
       const visitorId = `ua-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-      
+
       // Create device info object
       const deviceInfo: DeviceInfo = {
         visitorId: visitorId,
@@ -304,7 +304,7 @@ export class FingerprintService {
       return [];
     }
   }
-  
+
   getUserActivity(userId: number): Observable<UserActivityDto[]> {
     return this.http.get<UserActivityDto[]>(`${this.API_URL}/user/${userId}`)
       .pipe(
@@ -314,7 +314,7 @@ export class FingerprintService {
         })
       );
   }
-  
+
   private getSessionId(): string {
     let sessionId = sessionStorage.getItem('unihelp_session_id');
     if (!sessionId) {
@@ -323,13 +323,13 @@ export class FingerprintService {
     }
     return sessionId;
   }
-  
+
   /**
    * Identifies browser and OS from user agent string
    */
   private parseBrowserInfo(userAgent: string): {browser: string, os: string} {
     const ua = userAgent.toLowerCase();
-    
+
     let browser = 'Unknown';
     // Order matters! Check most specific browsers first
     if (ua.includes('opera') || ua.includes('opr')) browser = 'Opera';
@@ -337,17 +337,17 @@ export class FingerprintService {
     else if (ua.includes('firefox')) browser = 'Firefox';
     else if (ua.includes('safari') && !ua.includes('chrome')) browser = 'Safari';
     else if (ua.includes('chrome')) browser = 'Chrome';
-    
+
     let os = 'Unknown';
     if (ua.includes('windows')) os = 'Windows';
     else if (ua.includes('macintosh') || ua.includes('mac os')) os = 'macOS';
     else if (ua.includes('android')) os = 'Android';
     else if (ua.includes('iphone') || ua.includes('ipad')) os = 'iOS';
     else if (ua.includes('linux')) os = 'Linux';
-    
+
     return { browser, os };
   }
-  
+
   /**
    * Detects device type based on user agent
    */

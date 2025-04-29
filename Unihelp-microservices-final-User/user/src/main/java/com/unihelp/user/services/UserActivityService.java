@@ -30,7 +30,7 @@ public class UserActivityService {
         if (activityDto.getUserId() != null) {
             user = userRepository.findById(activityDto.getUserId()).orElse(null);
         }
-        
+
         // Handle case where user ID is provided but user not found
         if (activityDto.getUserId() != null && user == null) {
             throw new RuntimeException("User with ID " + activityDto.getUserId() + " not found");
@@ -89,13 +89,13 @@ public class UserActivityService {
 
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
-        
+
         try {
             // Get total logins in last 24 hours
             LocalDateTime yesterday = LocalDateTime.now().minus(1, ChronoUnit.DAYS);
             Long recentLogins = userActivityRepository.countLoginsInPeriod(yesterday);
             stats.put("recentLogins", recentLogins);
-            
+
             // Get login distribution by device type
             List<Object[]> deviceStats = userActivityRepository.countLoginsByDeviceType();
             Map<String, Long> deviceDistribution = new HashMap<>();
@@ -107,7 +107,7 @@ public class UserActivityService {
                 deviceDistribution.put(deviceType, count);
             }
             stats.put("deviceDistribution", deviceDistribution);
-            
+
             // Get login distribution by browser
             List<Object[]> browserStats = userActivityRepository.countLoginsByBrowserName();
             Map<String, Long> browserDistribution = new HashMap<>();
@@ -119,7 +119,7 @@ public class UserActivityService {
                 browserDistribution.put(browserName, count);
             }
             stats.put("browserDistribution", browserDistribution);
-            
+
             // Get login distribution by OS
             List<Object[]> osStats = userActivityRepository.countLoginsByOperatingSystem();
             Map<String, Long> osDistribution = new HashMap<>();
@@ -139,7 +139,7 @@ public class UserActivityService {
             stats.put("osDistribution", new HashMap<String, Long>());
             stats.put("error", e.getMessage());
         }
-        
+
         return stats;
     }
 

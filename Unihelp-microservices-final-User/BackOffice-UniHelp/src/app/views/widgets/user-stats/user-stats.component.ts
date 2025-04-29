@@ -89,14 +89,14 @@ export class UserStatsComponent implements OnInit {
     this.userStats.mentor = users.filter(user => user.role === 'MENTOR' || user.role === 'PROFESSOR').length;
     this.userStats.banned = users.filter(user => user.banned).length;
     this.userStats.active = this.userStats.total - this.userStats.banned;
-    
+
     // Update chart data
     this.userChartData.datasets[0].data = [
       this.userStats.admin,
       this.userStats.student,
       this.userStats.mentor
     ];
-    
+
     // Update the last updated timestamp
     this.lastUpdated = new Date();
   }

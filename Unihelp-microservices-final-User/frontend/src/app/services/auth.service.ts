@@ -79,7 +79,7 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     let userId = 0;
-    
+
     if (user) {
       try {
         const userData = JSON.parse(user);
@@ -88,7 +88,7 @@ export class AuthService {
         console.error('Error parsing user data during logout:', e);
       }
     }
-    
+
     if (!token) {
       console.log('No token found in localStorage during logout');
       localStorage.clear();
@@ -98,13 +98,13 @@ export class AuthService {
     const headers = {
       Authorization: `Bearer ${token}`,
     };
-    
+
     // Record the logout activity
     if (userId > 0) {
       this.fingerprintService.recordLogout(userId)
         .catch(err => console.error('Error recording logout activity:', err));
     }
-    
+
     return this.http.post<string>(`${this.apiUrl}/logout`, {}, { headers }).pipe(
       tap(() => {
         console.log('Logout successful, clearing localStorage');
@@ -157,7 +157,7 @@ export class AuthService {
       .post(`${this.apiUrl}/reset-password`, request, { responseType: 'text' })
       .pipe(catchError(this.handleError));
   }
-  
+
   loginWithGoogle(token: string): Observable<LoginResponse> {
     console.log('AuthService: Sending Google token to backend');
     return this.http.post<LoginResponse>(`${this.apiUrl}/google-login`, { token }, {
@@ -189,7 +189,7 @@ export class AuthService {
         })
       );
   }
-  
+
   completeProfile(userId: number, formData: FormData): Observable<any> {
     return this.http.post(`${this.apiUrl}/complete-profile`, formData)
       .pipe(
@@ -268,12 +268,32 @@ export class AuthService {
       .pipe(catchError(this.handleError));
   }
 
-  getCurrentUserProfile(): Observable<User> {
-    return this.http
-      .get<User>(`${this.apiUrl}/profile`)
-      .pipe(catchError(this.handleError));
+  // Helper method to get auth headers with token
+  private getAuthHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    let headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
   }
-  
+
+  getCurrentUserProfile(): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/profile`, {
+      headers: this.getAuthHeaders()
+    }).pipe(
+      tap((user: User) => {
+        // Store full name in localStorage for use in notifications
+        if (user && user.firstName && user.lastName) {
+          localStorage.setItem('fullName', `${user.firstName} ${user.lastName}`);
+        }
+      }),
+      catchError(this.handleError)
+    );
+  }
+
   // Get current user from local storage or fetch it from server if needed
   getUser(): Observable<User> {
     const user = localStorage.getItem('user');

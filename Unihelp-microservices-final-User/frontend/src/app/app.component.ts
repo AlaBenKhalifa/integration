@@ -20,7 +20,7 @@ export class AppComponent implements OnInit {
   ngOnInit() {
     // Immediately mark as loaded
     this.isLoaded = true;
-    
+
     // Track router events
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {

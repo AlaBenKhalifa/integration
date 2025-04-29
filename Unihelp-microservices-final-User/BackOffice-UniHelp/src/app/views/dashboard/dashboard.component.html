@@ -346,23 +346,23 @@
           </tr>
           </thead>
           <tbody>
-            @for (user of users; track user.name; let i = $index) {
-              <tr>
-                <td class="text-center">
-                  <c-avatar [size]="'md'" src="{{ user.avatar }}" status="{{ user.status }}" />
+          @for (user of users; track user.name; let i = $index) {
+          <tr>
+            <td class="text-center">
+              <c-avatar [size]="'md'" src="{{ user.avatar }}" status="{{ user.status }}" />
                 </td>
                 <td>
                   <div>{{ user.name }}</div>
                   <div class="small text-body-secondary text-nowrap">
                   <span>
-                    {{ user.state }} | Registered: {{ user.registered }}
-                  </span>
-                  </div>
-                </td>
-                <td class="text-center">
-                  <svg
-                    cIcon
-                    id="{{ user.country + user.name }}"
+          {{ user.state }} | Registered: {{ user.registered }}
+          </span>
+          </div>
+        </td>
+        <td class="text-center">
+          <svg
+            cIcon
+            id="{{ user.country + user.name }}"
                     name="cif{{ user.country }}"
                     size="xl"
                     title="{{ user.country }}"
@@ -375,11 +375,11 @@
                     </div>
                     <div class="float-end ms-1 text-nowrap">
                       <small class="text-body-secondary">
-                        {{ user.period }}
-                      </small>
-                    </div>
-                  </div>
-                  <c-progress thin [value]="user.usage" color="{{ user.color }}" aria-label="Usage" />
+          {{ user.period }}
+          </small>
+        </div>
+      </div>
+      <c-progress thin [value]="user.usage" color="{{ user.color }}" aria-label="Usage" />
                 </td>
                 <td class="text-center">
                   <svg cIcon name="cibCc{{ user.payment }}" size="xl"></svg>
@@ -389,7 +389,7 @@
                   <div class="fw-semibold text-nowrap">{{ user.activity }}</div>
                 </td>
               </tr>
-            }
+          }
           </tbody>
         </table>
       </c-card-body>

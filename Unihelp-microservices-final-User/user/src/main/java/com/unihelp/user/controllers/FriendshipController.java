@@ -18,7 +18,7 @@ import java.util.Map;
 public class FriendshipController {
 
     private final FriendshipService friendshipService;
-    
+
     /**
      * Send a friend request
      */
@@ -28,7 +28,7 @@ public class FriendshipController {
         FriendshipDTO friendship = friendshipService.sendFriendRequest(currentUserId, recipientId);
         return ResponseEntity.ok(friendship);
     }
-    
+
     /**
      * Accept a friend request
      */
@@ -38,7 +38,7 @@ public class FriendshipController {
         FriendshipDTO friendship = friendshipService.acceptFriendRequest(friendshipId, currentUserId);
         return ResponseEntity.ok(friendship);
     }
-    
+
     /**
      * Decline a friend request
      */
@@ -48,7 +48,7 @@ public class FriendshipController {
         FriendshipDTO friendship = friendshipService.declineFriendRequest(friendshipId, currentUserId);
         return ResponseEntity.ok(friendship);
     }
-    
+
     /**
      * Cancel a friend request
      */
@@ -58,7 +58,7 @@ public class FriendshipController {
         friendshipService.cancelFriendRequest(friendshipId, currentUserId);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Remove a friend
      */
@@ -68,7 +68,7 @@ public class FriendshipController {
         friendshipService.removeFriend(friendshipId, currentUserId);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Get all friends
      */
@@ -78,7 +78,7 @@ public class FriendshipController {
         List<UserDTO> friends = friendshipService.getFriends(currentUserId);
         return ResponseEntity.ok(friends);
     }
-    
+
     /**
      * Get pending friend requests (received)
      */
@@ -88,7 +88,7 @@ public class FriendshipController {
         List<FriendshipDTO> pendingRequests = friendshipService.getPendingFriendRequests(currentUserId);
         return ResponseEntity.ok(pendingRequests);
     }
-    
+
     /**
      * Get sent friend requests
      */
@@ -98,7 +98,18 @@ public class FriendshipController {
         List<FriendshipDTO> sentRequests = friendshipService.getSentFriendRequests(currentUserId);
         return ResponseEntity.ok(sentRequests);
     }
-    
+
+    /**
+     * Get count of pending friend requests
+     */
+    @GetMapping("/pending/count")
+    public ResponseEntity<Map<String, Long>> getPendingRequestsCount() {
+        Long currentUserId = getCurrentUserId();
+        List<FriendshipDTO> pendingRequests = friendshipService.getPendingFriendRequests(currentUserId);
+        long count = pendingRequests.size();
+        return ResponseEntity.ok(Map.of("count", count));
+    }
+
     /**
      * Check if users are friends
      */
@@ -108,7 +119,7 @@ public class FriendshipController {
         String status = friendshipService.getFriendshipStatus(currentUserId, userId);
         return ResponseEntity.ok(Map.of("status", status));
     }
-    
+
     /**
      * Get friend suggestions based on skills
      */
@@ -118,14 +129,14 @@ public class FriendshipController {
         List<UserDTO> suggestions = friendshipService.getFriendSuggestions(currentUserId);
         return ResponseEntity.ok(suggestions);
     }
-    
+
     /**
      * Get the current user's ID from the security context
      */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
-        
+
         return friendshipService.getUserIdByEmail(userEmail);
     }
 }

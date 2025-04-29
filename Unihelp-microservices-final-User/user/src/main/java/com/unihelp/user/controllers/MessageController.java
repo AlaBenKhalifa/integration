@@ -20,7 +20,7 @@ public class MessageController {
 
     private final MessageService messageService;
     private final FriendshipService friendshipService;
-    
+
     /**
      * Send a message to another user
      */
@@ -28,18 +28,18 @@ public class MessageController {
     public ResponseEntity<MessageDTO> sendMessage(
             @PathVariable Long recipientId,
             @RequestBody Map<String, String> payload) {
-        
+
         Long currentUserId = getCurrentUserId();
         String content = payload.get("content");
-        
+
         if (content == null || content.trim().isEmpty()) {
             return ResponseEntity.badRequest().build();
         }
-        
+
         MessageDTO message = messageService.sendMessage(currentUserId, recipientId, content);
         return ResponseEntity.ok(message);
     }
-    
+
     /**
      * Get conversation with another user (paginated)
      */
@@ -48,12 +48,12 @@ public class MessageController {
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        
+
         Long currentUserId = getCurrentUserId();
         Page<MessageDTO> messages = messageService.getConversation(currentUserId, userId, page, size);
         return ResponseEntity.ok(messages);
     }
-    
+
     /**
      * Get simple conversation history (not paginated)
      */
@@ -63,7 +63,7 @@ public class MessageController {
         List<MessageDTO> messages = messageService.getMessagesBetweenUsers(currentUserId, userId);
         return ResponseEntity.ok(messages);
     }
-    
+
     /**
      * Get all conversations for the current user
      */
@@ -73,7 +73,7 @@ public class MessageController {
         List<MessageDTO> conversations = messageService.getConversationPreviews(currentUserId);
         return ResponseEntity.ok(conversations);
     }
-    
+
     /**
      * Mark a message as read
      */
@@ -83,7 +83,7 @@ public class MessageController {
         MessageDTO message = messageService.markMessageAsRead(messageId, currentUserId);
         return ResponseEntity.ok(message);
     }
-    
+
     /**
      * Mark all messages in a conversation as read
      */
@@ -93,7 +93,7 @@ public class MessageController {
         messageService.markConversationAsRead(currentUserId, userId);
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Get unread messages count
      */
@@ -103,14 +103,14 @@ public class MessageController {
         long count = messageService.getUnreadMessagesCount(currentUserId);
         return ResponseEntity.ok(Map.of("count", count));
     }
-    
+
     /**
      * Get the current user's ID from the security context
      */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = authentication.getName();
-        
+
         return friendshipService.getUserIdByEmail(userEmail);
     }
 }

@@ -11,9 +11,9 @@ import { iconSubset } from './icons/icon-subset';
 import { HttpClientModule } from '@angular/common/http';
 
 @Component({
-    selector: 'app-root',
-    template: '<router-outlet />',
-    imports: [RouterOutlet, HttpClientModule]
+  selector: 'app-root',
+  template: '<router-outlet />',
+  imports: [RouterOutlet, HttpClientModule]
 })
 export class AppComponent implements OnInit {
   title = 'CoreUI Angular Admin Template';
@@ -52,8 +52,8 @@ export class AppComponent implements OnInit {
     }
 
     this.#router.events.pipe(
-        takeUntilDestroyed(this.#destroyRef)
-      ).subscribe((evt) => {
+      takeUntilDestroyed(this.#destroyRef)
+    ).subscribe((evt) => {
       if (!(evt instanceof NavigationEnd)) {
         return;
       }

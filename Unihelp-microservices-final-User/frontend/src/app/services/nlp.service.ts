@@ -32,7 +32,7 @@ export class NlpService {
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
-    return this.http.post<NlpAnalysisResult>(`${this.apiUrl}/analyze/${userId}`, {}, { 
+    return this.http.post<NlpAnalysisResult>(`${this.apiUrl}/analyze/${userId}`, {}, {
       headers,
       withCredentials: true
     }).pipe(
@@ -53,11 +53,11 @@ export class NlpService {
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
-    
+
     // Set Content-Type header for text data
     headers = headers.set('Content-Type', 'text/plain');
-    
-    return this.http.post<NlpAnalysisResult>(`${this.apiUrl}/analyze-text`, text, { 
+
+    return this.http.post<NlpAnalysisResult>(`${this.apiUrl}/analyze-text`, text, {
       headers,
       withCredentials: true
     }).pipe(
@@ -78,7 +78,7 @@ export class NlpService {
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }
-    return this.http.get<NlpAnalysisResult>(`${this.apiUrl}/${userId}`, { 
+    return this.http.get<NlpAnalysisResult>(`${this.apiUrl}/${userId}`, {
       headers,
       withCredentials: true
     }).pipe(

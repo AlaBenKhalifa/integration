@@ -10,7 +10,7 @@ describe('BannedUsersComponent', () => {
     await TestBed.configureTestingModule({
       imports: [BannedUsersComponent]
     })
-    .compileComponents();
+      .compileComponents();
 
     fixture = TestBed.createComponent(BannedUsersComponent);
     component = fixture.componentInstance;
